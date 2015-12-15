@@ -1,7 +1,13 @@
 var population = new G.Population()
 
-population.createDnaPool()
+// population.createDnaPool()
 
 var P5 = new G.Canvas()
 
-console.log(population)
+var body = new G.Body()
+var vec = new p5.Vector(20, 50)
+console.log(vec)
+body.moveAway(vec)
+
+
+console.log(body)

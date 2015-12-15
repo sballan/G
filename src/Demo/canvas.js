@@ -9,11 +9,11 @@ G.Canvas = function(p) {
 
   function canvas(p) {
     p.setup = function() {
-      // Sets the screen to be 640 pixels wide and 360 pixels high
       p.createCanvas(width, height);
     }
-    p.draw = function() {
 
+    p.draw = function() {
+      // Executes all the functions in the drawFunctions objet
       self.draw()
 
       // Set the background to black and turn off the fill color

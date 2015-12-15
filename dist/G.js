@@ -22,17 +22,87 @@ G.Body = function () {};
 // You should make your creature class inherit from this class in order to let it use G behaviors.
 G.Creature = function () {
   this.alive = true;
-  this.dna = new G.Dna();
+  this.body = new G.Body();
   this.age = 0;
 };
 
 G.Creature.prototype = {
+  setPosition: function setPosition() {
+    var self = this;
+    var args = Array.prototype.slice.call(arguments);
+    self.body.setPosition.apply(self.body, args);
+  },
+  distanceTo: function distanceTo(vector) {
+    return this.body.distanceTo(vector);
+  },
+  calcStep: function calcStep(end) {
+    return this.body.calcStep(end);
+  },
+  moveToward: function moveToward(end) {
+    this.body.moveToward(end);
+  },
+  moveAway: function moveAway(end) {
+    this.body.moveAway(end);
+  },
   die: function die() {
     this.alive = false;
+  },
+  update: function update() {
+    this.body.update();
   }
+
 };
 
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
+G.Body = function () {
+  this.dna = new G.Dna();
+  this.position = new p5.Vector(0, 0);
+  this.rotation = 0;
+  this.stepSize = 5;
+};
+
+G.Body.prototype = {
+  setPosition: function setPosition() {
+    var self = this;
+    var args = Array.prototype.slice.call(arguments);
+
+    new p5.Vector().set.apply(self.position, args);
+  },
+
+  distanceTo: function distanceTo(vector) {
+    return this.position.dist(vector);
+  },
+  // Accepts a p5.Vector
+  calcStep: function calcStep(end) {
+    var step = this.stepSize;
+    var start = this.position;
+    var distance = start.dist(end);
+
+    return p5.Vector.lerp(start, end, step / distance);
+  },
+  // Can accept a p5.Vector or a Creature
+  moveToward: function moveToward(end) {
+    var self = this;
+    var endPoint;
+
+    if (end instanceof p5.Vector) endPoint = end;else endPoint = end.body.position;
+
+    var newPoint = self.calcStep(endPoint);
+    self.setPosition(newPoint);
+  },
+  moveAway: function moveAway(end) {
+    var self = this;
+    var endPoint;
+
+    if (end instanceof p5.Vector) endPoint = end;else endPoint = end.body.position;
+
+    var newPoint = self.calcStep(endPoint);
+    self.position.sub(newPoint);
+  },
+
+  update: function update() {}
+
+};
 
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
 
@@ -45,11 +115,11 @@ G.Canvas = function (p) {
 
   function canvas(p) {
     p.setup = function () {
-      // Sets the screen to be 640 pixels wide and 360 pixels high
       p.createCanvas(width, height);
     };
-    p.draw = function () {
 
+    p.draw = function () {
+      // Executes all the functions in the drawFunctions objet
       self.draw();
 
       // Set the background to black and turn off the fill color
@@ -178,8 +248,10 @@ G.Gene.prototype = {
 };
 
 G.Population = function () {
-  this.dnaPool = [];
   this.startingPopulation = 5;
+  this.creatures = [];
+
+  this.dnaPool = [];
 };
 
 G.Population.prototype = {
@@ -205,6 +277,7 @@ G.Population.prototype = {
       return dna.alive;
     });
   },
+  // This function lets you make a new pool of randomly created Dna objects.  It is not the recommended way to run a simulation, and is meant for testing purposes.
   createDnaPool: function createDnaPool() {
     for (var i = 0; i < this.startingPopulation; i++) {
       var newDna = new G.Dna();
@@ -213,5 +286,11 @@ G.Population.prototype = {
     }
 
     return this.dnaPool;
+  },
+
+  update: function update() {
+    this.creatures.forEach(function (creature) {
+      creature.update();
+    });
   }
 };

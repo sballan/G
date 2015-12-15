@@ -1,6 +1,8 @@
 G.Population = function() {
-  this.dnaPool = [];
   this.startingPopulation = 5;
+  this.creatures = [];
+
+  this.dnaPool = [];
 }
 
 G.Population.prototype = {
@@ -27,6 +29,7 @@ G.Population.prototype = {
       return dna.alive
     })
   },
+  // This function lets you make a new pool of randomly created Dna objects.  It is not the recommended way to run a simulation, and is meant for testing purposes.
   createDnaPool: function() {
     for(var i = 0; i < this.startingPopulation; i++) {
       var newDna = new G.Dna();
@@ -35,5 +38,11 @@ G.Population.prototype = {
     }
 
     return this.dnaPool;
+  },
+
+  update: function() {
+    this.creatures.forEach(function(creature){
+      creature.update()
+    })
   }
 }
