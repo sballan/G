@@ -2,7 +2,6 @@
 G.Creature = function() {
   this.alive = true;
   this.body = new G.Body();
-  this.age = 0;
 }
 
 G.Creature.prototype = {

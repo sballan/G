@@ -19,11 +19,12 @@ G.World = function () {};
 
 G.Body = function () {};
 
+G.Brain = function () {};
+
 // You should make your creature class inherit from this class in order to let it use G behaviors.
 G.Creature = function () {
   this.alive = true;
   this.body = new G.Body();
-  this.age = 0;
 };
 
 G.Creature.prototype = {
@@ -56,12 +57,22 @@ G.Creature.prototype = {
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
 G.Body = function () {
   this.dna = new G.Dna();
+  this.brain = null;
   this.position = new p5.Vector(0, 0);
   this.rotation = 0;
-  this.stepSize = 5;
+
+  this.currentStep = 5;
+  this.maxStep = 10;
+  this.minStep = 1;
+
+  this.init();
 };
 
 G.Body.prototype = {
+  init: function init() {
+    this.defaultDna();
+    this.brain = new G.Brain(this.dna);
+  },
   setPosition: function setPosition() {
     var self = this;
     var args = Array.prototype.slice.call(arguments);
@@ -74,7 +85,7 @@ G.Body.prototype = {
   },
   // Accepts a p5.Vector
   calcStep: function calcStep(end) {
-    var step = this.stepSize;
+    var step = this.currentStep;
     var start = this.position;
     var distance = start.dist(end);
 
@@ -100,7 +111,45 @@ G.Body.prototype = {
     self.position.sub(newPoint);
   },
 
-  update: function update() {}
+  update: function update() {
+    this.brain.update();
+  },
+
+  defaultDna: function defaultDna() {
+    var dataArray = G.Setup.defaultDna();
+    this.dna.fillGenesFromArray(dataArray);
+
+    return this.dna;
+  }
+
+};
+
+// The Brain class looks at a Creature's Dna and uses it to determine what to do next.
+
+G.Brain = function (dna) {
+  this.dna = dna;
+  this.states = [];
+  this.state = 'SearchingFood';
+  this.timeStartedState = null;
+
+  this.init();
+};
+
+G.Brain.prototype = {
+  init: function init() {
+    this.decodeDna();
+  },
+  searchFood: function searchFood() {},
+  decodeDna: function decodeDna() {
+    this.decodeStates();
+  },
+  decodeStates: function decodeStates() {
+    var states = this.dna.genes.map(function (gene, index) {
+      return String.fromCharCode.apply(null, gene.data);
+    });
+    this.states = states.slice(0, 10);
+    return this.states;
+  }
 
 };
 
@@ -170,6 +219,23 @@ G.Canvas.prototype.removeFunction = function (func, name) {
   this.drawFunctions[name] = null;
 };
 
+G.Setup = {
+  defaultDna: function defaultDna() {
+    var states = ['SearchingFood', 'SearchingPrey', 'SearchingMate', 'PursuingFood', 'PursuingPrey', 'PursuingMate', 'Eating', 'Attacking', 'Reproducing', 'Avoiding'];
+
+    var dataArray = states.map(function (string) {
+      var data = [];
+      for (var i = 0; i < string.length; i++) {
+        data.push(string.charCodeAt(i));
+      }
+      return data;
+    });
+
+    return dataArray;
+  }
+
+};
+
 // The World class is designed to be used with p5.js and with the other classes in the Demo folder.  Feel free to write your own World class.
 
 G.World = function (p) {};
@@ -198,6 +264,16 @@ G.Dna.prototype = {
       this.createGene();
     }
   },
+  fillGenesFromArray: function fillGenesFromArray(arr) {
+    var self = this;
+
+    var genes = arr.map(function (data) {
+      return new G.Gene(data);
+    });
+
+    self.genes = genes;
+    return self.genes;
+  },
   mutateGenes: function mutateGenes(genes) {
     return genes.map(function (gene) {
       return gene.mutate();
@@ -209,10 +285,12 @@ G.Dna.prototype = {
 
 };
 
-G.Gene = function () {
+G.Gene = function (data) {
   this.data = [];
   this.mutationRate = 0.1;
   this.mutationAmount = 3;
+
+  if (data) this.data = data;
 };
 
 G.Gene.prototype = {

@@ -1,14 +1,22 @@
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
 G.Body = function() {
   this.dna = new G.Dna();
+  this.brain = null;
   this.position = new p5.Vector(0, 0)
   this.rotation = 0;
-  this.stepSize = 5;
 
+  this.currentStep = 5;
+  this.maxStep = 10;
+  this.minStep = 1;
 
+  this.init()
 }
 
 G.Body.prototype = {
+  init: function() {
+    this.defaultDna()
+    this.brain = new G.Brain(this.dna)
+  },
   setPosition: function() {
     var self = this;
     var args = Array.prototype.slice.call (arguments)
@@ -21,7 +29,7 @@ G.Body.prototype = {
   },
   // Accepts a p5.Vector
   calcStep: function(end) {
-    var step = this.stepSize
+    var step = this.currentStep
     var start = this.position
     var distance = start.dist(end)
 
@@ -51,7 +59,14 @@ G.Body.prototype = {
 
 
   update: function() {
+    this.brain.update()
+  },
 
+  defaultDna: function() {
+    var dataArray = G.Setup.defaultDna()
+    this.dna.fillGenesFromArray(dataArray)
+
+    return this.dna
   }
 
 }

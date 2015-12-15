@@ -1,7 +1,9 @@
-G.Gene = function() {
+G.Gene = function(data) {
   this.data = [];
   this.mutationRate = 0.1;
   this.mutationAmount = 3;
+
+  if(data) this.data = data
 
 }
 

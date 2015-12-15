@@ -17,3 +17,5 @@ G.Canvas = function() {}
 G.World = function() {}
 
 G.Body = function() {}
+
+G.Brain = function() {}

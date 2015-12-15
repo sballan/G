@@ -22,6 +22,16 @@ G.Dna.prototype = {
       this.createGene()
     }
   },
+  fillGenesFromArray: function(arr) {
+    var self = this;
+
+    var genes = arr.map(function(data) {
+      return new G.Gene(data)
+    })
+
+    self.genes = genes;
+    return self.genes
+  },
   mutateGenes: function(genes) {
     return genes.map(function(gene) {
       return gene.mutate();
