@@ -4,6 +4,7 @@ G.Body = function() {
   this.brain = null;
   this.position = new p5.Vector(0, 0)
   this.rotation = 0;
+  this.category = 'body'
 
   this.currentStep = 5;
   this.maxStep = 10;
@@ -16,6 +17,7 @@ G.Body.prototype = {
   init: function() {
     this.defaultDna()
     this.brain = new G.Brain(this.dna)
+    this.states = this.brain.states
   },
   setPosition: function() {
     var self = this;
@@ -23,7 +25,6 @@ G.Body.prototype = {
 
     new p5.Vector().set.apply(self.position, args)
   },
-
   distanceTo: function(vector) {
     return this.position.dist(vector)
   },
@@ -56,10 +57,15 @@ G.Body.prototype = {
     var newPoint = self.calcStep(endPoint)
     self.position.sub(newPoint)
   },
-
-
+  getState: function() {
+    return this.brain.state
+  },
+  setState: function(string) {
+    this.brain.state = string
+  },
   update: function() {
     this.brain.update()
+    this[this.state]()
   },
 
   defaultDna: function() {

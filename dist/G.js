@@ -60,6 +60,7 @@ G.Body = function () {
   this.brain = null;
   this.position = new p5.Vector(0, 0);
   this.rotation = 0;
+  this.category = 'body';
 
   this.currentStep = 5;
   this.maxStep = 10;
@@ -72,6 +73,7 @@ G.Body.prototype = {
   init: function init() {
     this.defaultDna();
     this.brain = new G.Brain(this.dna);
+    this.states = this.brain.states;
   },
   setPosition: function setPosition() {
     var self = this;
@@ -79,7 +81,6 @@ G.Body.prototype = {
 
     new p5.Vector().set.apply(self.position, args);
   },
-
   distanceTo: function distanceTo(vector) {
     return this.position.dist(vector);
   },
@@ -110,9 +111,15 @@ G.Body.prototype = {
     var newPoint = self.calcStep(endPoint);
     self.position.sub(newPoint);
   },
-
+  getState: function getState() {
+    return this.brain.state;
+  },
+  setState: function setState(string) {
+    this.brain.state = string;
+  },
   update: function update() {
     this.brain.update();
+    this[this.state]();
   },
 
   defaultDna: function defaultDna() {
@@ -128,9 +135,12 @@ G.Body.prototype = {
 
 G.Brain = function (dna) {
   this.dna = dna;
+  this.characteristics = {};
   this.states = [];
   this.state = 'searchingFood';
   this.timeStartedState = null;
+
+  this.target = null;
 
   this.init();
 };
@@ -139,6 +149,8 @@ G.Brain.prototype = {
   init: function init() {
     this.decodeDna();
   },
+  lookAround: function lookAround() {},
+  assessTarget: function assessTarget(target) {},
   searchFood: function searchFood() {},
   decodeDna: function decodeDna() {
     this.decodeStates();
@@ -243,7 +255,7 @@ G.World = function (p) {};
 G.Dna = function () {
   this.genes = [];
   this.alive = true;
-  this.infoDetail = 10;
+  this.infoDetail = 100;
   this.fitness = 0;
 };
 

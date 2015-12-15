@@ -2,9 +2,12 @@
 
 G.Brain = function(dna) {
   this.dna = dna;
+  this.characteristics = {};
   this.states = [];
   this.state = 'searchingFood';
   this.timeStartedState = null;
+
+  this.target = null;
 
   this.init()
 
@@ -13,6 +16,12 @@ G.Brain = function(dna) {
 G.Brain.prototype = {
   init: function() {
     this.decodeDna()
+  },
+  lookAround: function() {
+
+  },
+  assessTarget: function(target) {
+
   },
   searchFood: function() {
 

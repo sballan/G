@@ -1,7 +1,7 @@
 G.Dna = function() {
   this.genes = [];
   this.alive = true;
-  this.infoDetail = 10;
+  this.infoDetail = 100;
   this.fitness = 0;
 }
 
