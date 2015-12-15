@@ -10,6 +10,8 @@ app.use(express.static(__dirname + '/dist'));
 
 app.use(express.static(__dirname + '/viewer'));
 
+app.use(express.static(__dirname + '/node_modules/p5/lib'));
+
 router.get('/', function(req, res, next) {
 	send.send('/index.html')
 })

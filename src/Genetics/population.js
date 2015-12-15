@@ -1,5 +1,6 @@
 G.Population = function() {
   this.dnaPool = [];
+  this.startingPopulation = 5;
 }
 
 G.Population.prototype = {
@@ -25,5 +26,14 @@ G.Population.prototype = {
     self.dnaPool = self.dnaPool.map(function(dna) {
       return dna.alive
     })
+  },
+  createDnaPool: function() {
+    for(var i = 0; i < this.startingPopulation; i++) {
+      var newDna = new G.Dna();
+      newDna.fillGenes()
+      this.dnaPool.push(newDna);
+    }
+
+    return this.dnaPool;
   }
 }

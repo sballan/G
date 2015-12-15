@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var G = {};
 
@@ -10,12 +10,124 @@ G.Population = function () {};
 
 G.Dna = function () {};
 
+G.Creature = function () {};
+
+// These are part of the Demo and can should be modified if you wish to make your own simulation
+G.Canvas = function () {};
+
+G.World = function () {};
+
+G.Body = function () {};
+
+// You should make your creature class inherit from this class in order to let it use G behaviors.
+G.Creature = function () {
+  this.alive = true;
+  this.dna = new G.Dna();
+  this.age = 0;
+};
+
+G.Creature.prototype = {
+  die: function die() {
+    this.alive = false;
+  }
+};
+
+// This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
+
+//This class is used to create a canvas using p5.js.  Feel free to replace it!
+
+G.Canvas = function (p) {
+  this.drawFunctions = {};
+  var self = this;
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  function canvas(p) {
+    p.setup = function () {
+      // Sets the screen to be 640 pixels wide and 360 pixels high
+      p.createCanvas(width, height);
+    };
+    p.draw = function () {
+
+      self.draw();
+
+      // Set the background to black and turn off the fill color
+      p.background(0);
+      p.noFill();
+
+      // The two parameters of the point() method each specify
+      // coordinates.
+      // The first parameter is the x-coordinate and the second is the Y
+      p.stroke(255);
+      p.point(width * 0.5, height * 0.5);
+      p.point(width * 0.5, height * 0.25);
+
+      // Coordinates are used for drawing all shapes, not just points.
+      // Parameters for different functions are used for different
+      // purposes. For example, the first two parameters to line()
+      // specify the coordinates of the first endpoint and the second
+      // two parameters specify the second endpoint
+      p.stroke(0, 153, 255);
+      p.line(0, height * 0.33, width, height * 0.33);
+
+      // By default, the first two parameters to rect() are the
+      // coordinates of the upper-left corner and the second pair
+      // is the width and height
+      p.stroke(255, 153, 0);
+      p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
+    };
+  }
+  return new p5(canvas, 'p5-canvas');
+};
+
+// This function executes all functions in teh drawFunctions object
+G.Canvas.prototype.draw = function () {
+  var funcs = this.drawFunctions;
+
+  for (var func in funcs) {
+    if (typeof funcs[func] === 'function') funcs[func]();
+  }
+};
+
+// This function takes a function and a name and creates a new key value pair of name and function in the drawFunctions object
+G.Canvas.prototype.addFunction = function (func, name) {
+  this.drawFunctions[name] = func;
+};
+
+// This function uses the name parameter to remove the function with that name from the drawFunctions object.
+G.Canvas.prototype.removeFunction = function (func, name) {
+  this.drawFunctions[name] = null;
+};
+
+// The World class is designed to be used with p5.js and with the other classes in the Demo folder.  Feel free to write your own World class.
+
+G.World = function (p) {};
+
 G.Dna = function () {
   this.genes = [];
   this.alive = true;
+  this.infoDetail = 10;
+  this.fitness = 0;
 };
 
 G.Dna.prototype = {
+  createGene: function createGene() {
+    var newGene = new G.Gene();
+    for (var i = 0; i < this.infoDetail; i++) {
+      newGene.createData();
+    }
+    this.genes.push(newGene);
+
+    return this;
+  },
+  fillGenes: function fillGenes() {
+    this.genes = [];
+
+    for (var i = 0; i < this.infoDetail; i++) {
+      this.createGene();
+    }
+  },
   mutateGenes: function mutateGenes(genes) {
     return genes.map(function (gene) {
       return gene.mutate();
@@ -51,14 +163,23 @@ G.Gene.prototype = {
       if (polarity < 0) {
         self.data.splice(index, 1);
       } else {
+        // Maybe use createData here?
         self.data.push(self.data[index]);
       }
     }
+  },
+  createData: function createData() {
+    var data = Math.random() * 100;
+    data = Math.floor(data);
+    this.data.push(data);
+
+    return this;
   }
 };
 
 G.Population = function () {
   this.dnaPool = [];
+  this.startingPopulation = 5;
 };
 
 G.Population.prototype = {
@@ -83,7 +204,14 @@ G.Population.prototype = {
     self.dnaPool = self.dnaPool.map(function (dna) {
       return dna.alive;
     });
+  },
+  createDnaPool: function createDnaPool() {
+    for (var i = 0; i < this.startingPopulation; i++) {
+      var newDna = new G.Dna();
+      newDna.fillGenes();
+      this.dnaPool.push(newDna);
+    }
+
+    return this.dnaPool;
   }
 };
-
-// You should make your creature class inherit from this class in order to let it use G behaviors.
