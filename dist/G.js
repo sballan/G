@@ -129,7 +129,7 @@ G.Body.prototype = {
 G.Brain = function (dna) {
   this.dna = dna;
   this.states = [];
-  this.state = 'SearchingFood';
+  this.state = 'searchingFood';
   this.timeStartedState = null;
 
   this.init();
@@ -221,7 +221,7 @@ G.Canvas.prototype.removeFunction = function (func, name) {
 
 G.Setup = {
   defaultDna: function defaultDna() {
-    var states = ['SearchingFood', 'SearchingPrey', 'SearchingMate', 'PursuingFood', 'PursuingPrey', 'PursuingMate', 'Eating', 'Attacking', 'Reproducing', 'Avoiding'];
+    var states = ['searchingFood', 'searchingPrey', 'searchingMate', 'pursuingFood', 'pursuingPrey', 'pursuingMate', 'eating', 'attacking', 'reproducing', 'avoiding'];
 
     var dataArray = states.map(function (string) {
       var data = [];

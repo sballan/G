@@ -1,18 +1,18 @@
 G.Setup = {
   defaultDna: function() {
     var states = [
-      'SearchingFood',
-      'SearchingPrey',
-      'SearchingMate',
+      'searchingFood',
+      'searchingPrey',
+      'searchingMate',
 
-      'PursuingFood',
-      'PursuingPrey',
-      'PursuingMate',
+      'pursuingFood',
+      'pursuingPrey',
+      'pursuingMate',
 
-      'Eating',
-      'Attacking',
-      'Reproducing',
-      'Avoiding'
+      'eating',
+      'attacking',
+      'reproducing',
+      'avoiding'
     ]
 
     var dataArray = states.map(function(string) {

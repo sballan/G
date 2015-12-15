@@ -3,7 +3,7 @@
 G.Brain = function(dna) {
   this.dna = dna;
   this.states = [];
-  this.state = 'SearchingFood';
+  this.state = 'searchingFood';
   this.timeStartedState = null;
 
   this.init()
