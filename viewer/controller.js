@@ -1,16 +1,19 @@
 var population = new G.Population()
 
-// population.createDnaPool()
+var canvas = new G.Canvas(population)
 
-var P5 = new G.Canvas()
+var d = 100
+canvas.addFunction('rectangle', function(p) {
+  p.stroke(255, 153, 0);
+  p.rect(100, d++, 10, 10);
+})
 
-G.Setup.defaultDna()
+// G.Setup.defaultDna()
 
-var body = new G.Body()
 // var vec = new p5.Vector(20, 50)
 // console.log(vec)
 // body.moveAway(vec)
 
 
-console.log(body.dna.genes)
-console.log(body.brain.decodeStates())
+// console.log(body.dna.genes)
+// console.log(body.brain.decodeStates())

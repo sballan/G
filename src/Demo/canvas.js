@@ -1,8 +1,12 @@
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
 
-G.Canvas = function(p) {
+G.Canvas = function(population) {
+  this.population = population
   this.drawFunctions = {};
+  this.p5 = undefined;
   var self = this;
+
+
 
   var width = window.innerWidth;
   var height = window.innerHeight;
@@ -14,7 +18,6 @@ G.Canvas = function(p) {
 
     p.draw = function() {
       // Executes all the functions in the drawFunctions objet
-      self.draw()
 
       // Set the background to black and turn off the fill color
       p.background(0);
@@ -40,26 +43,38 @@ G.Canvas = function(p) {
       // is the width and height
       p.stroke(255, 153, 0);
       p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
+
+      self.draw(p)
     }
   }
-  return new p5(canvas, 'p5-canvas')
+  this.p5 =  new p5(canvas, 'p5-canvas')
+  this.init()
+}
+
+G.Canvas.prototype.init = function() {
+  var self = this;
+  var update = self.population.update  //.bind(self.population);
+  self.addFunction('population', update, self)
 }
 
 // This function executes all functions in teh drawFunctions object
-G.Canvas.prototype.draw = function() {
+G.Canvas.prototype.draw = function(p) {
   var funcs = this.drawFunctions
 
   for(var func in funcs) {
-    if(typeof funcs[func] === 'function') funcs[func]()
+    if(typeof funcs[func] === 'function') funcs[func](p)
   }
 }
 
 // This function takes a function and a name and creates a new key value pair of name and function in the drawFunctions object
-G.Canvas.prototype.addFunction = function(func, name) {
-  this.drawFunctions[name] = func
+G.Canvas.prototype.addFunction = function(name, func, thisArg) {
+  var self = this;
+  if(thisArg) func = func.bind(thisArg)
+
+  self.drawFunctions[name] = func
 }
 
 // This function uses the name parameter to remove the function with that name from the drawFunctions object.
-G.Canvas.prototype.removeFunction = function(func, name) {
+G.Canvas.prototype.removeFunction = function(name, func) {
   this.drawFunctions[name] = null
 }
