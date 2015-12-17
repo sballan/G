@@ -1,7 +1,7 @@
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
 
 G.Brain = function(dna) {
-  this.dna = dna;
+  this.dna = dna || new G.Dna()
   this.characteristics = {};
   this.states = [];
   this.state = 'searchingFood';
@@ -13,28 +13,32 @@ G.Brain = function(dna) {
 
 }
 
-G.Brain.prototype = {
-  init: function() {
-    this.decodeDna()
-  },
-  lookAround: function() {
+G.Brain.prototype.init = function() {
+  var dataArray = G.Setup.defaultDna()
+  this.dna.fillGenesFromArray(dataArray)
+  this.decodeDna()
+}
 
-  },
-  assessTarget: function(target) {
+G.Brain.prototype.lookAround = function() {
 
-  },
-  searchingFood: function() {
+}
 
-  },
-  decodeDna: function() {
-    this.decodeStates()
-  },
-  decodeStates: function() {
-    var states = this.dna.genes.map(function(gene, index) {
-      return String.fromCharCode.apply(null, gene.data)
-    })
-    this.states = states.slice(0, 10)
-    return this.states;
-  }
+G.Brain.prototype.assessTarget = function(target) {
 
+}
+
+G.Brain.prototype.searchingFood = function() {
+
+}
+
+G.Brain.prototype.decodeDna = function() {
+  this.decodeStates()
+}
+
+G.Brain.prototype.decodeStates = function() {
+  var states = this.dna.genes.map(function(gene, index) {
+    return String.fromCharCode.apply(null, gene.data)
+  })
+  this.states = states.slice(0, 10)
+  return this.states;
 }

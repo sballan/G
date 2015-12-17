@@ -1,6 +1,6 @@
 G.Population = function() {
   this.startingPopulation = 5;
-  this.creatures = [];
+  this.entities = [];
 
   this.dnaPool = [];
 }
@@ -41,8 +41,8 @@ G.Population.prototype = {
   },
 
   update: function() {
-    this.creatures.forEach(function(creature){
-      creature.update()
+    this.entities.forEach(function(entity){
+      entity.update()
     })
   }
 }

@@ -1,84 +1,47 @@
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
 G.Body = function() {
-  this.dna = new G.Dna();
-  this.brain = null;
-  this.position = new p5.Vector(0, 0)
-  this.rotation = 0;
   this.category = 'body'
+  this.brain = undefined;
 
-  this.currentStep = 5;
-  this.maxStep = 10;
-  this.minStep = 1;
+  this.position = new p5.Vector(0, 0)
+  this.velocity = new p5.Vector(0, 0)
+  this.acceleration = new p5.Vector(0, 0)
+
+  this.maxspeed = 3
+  this.maxforce = 0.05
 
   this.init()
 }
 
-G.Body.prototype = {
-  init: function() {
-    this.defaultDna()
-    this.brain = new G.Brain(this.dna)
-    this.states = this.brain.states
-  },
-  setPosition: function() {
-    var self = this;
-    var args = Array.prototype.slice.call (arguments)
 
-    new p5.Vector().set.apply(self.position, args)
-  },
-  distanceTo: function(vector) {
-    return this.position.dist(vector)
-  },
-  // Accepts a p5.Vector
-  calcStep: function(end) {
-    var step = this.currentStep
-    var start = this.position
-    var distance = start.dist(end)
+G.Body.prototype.init = function() {
+  this.brain = new G.Brain()
+}
 
-    return p5.Vector.lerp(start, end, step / distance)
-  },
-  // Can accept a p5.Vector or a Creature
+G.Body.prototype.applyForce = function(force) {
+  this.acceleration.add(force);
+}
 
-  render: function() {
-    fill(127, 127);
-    stroke(200);
-    ellipse(this.position.x, this.position.y, 16, 16);
-  },
-  moveToward: function(end) {
-    var self = this
-    var endPoint
+G.Body.prototype.getPosition = function() {
+  return this.brain.position;
+}
+G.Body.prototype.getDna = function() {
+  return this.brain.Dna;
+}
+G.Body.prototype.render = function() {
+  this.brain.render();
+}
+// Can accept a p5.Vector or a Creature
 
-    if(end instanceof p5.Vector) endPoint = end;
-    else endPoint = end.body.position;
+G.Body.prototype.update = function() {
+  this.brain.update()
+  this[this.state]()
 
-    var newPoint = self.calcStep(endPoint)
-    self.setPosition(newPoint)
-  },
-  moveAway: function(end) {
-    var self = this
-    var endPoint
-
-    if(end instanceof p5.Vector) endPoint = end;
-    else endPoint = end.body.position;
-
-    var newPoint = self.calcStep(endPoint)
-    self.position.sub(newPoint)
-  },
-  getState: function() {
-    return this.brain.state
-  },
-  setState: function(string) {
-    this.brain.state = string
-  },
-  update: function() {
-    this.brain.update()
-    this[this.state]()
-  },
-
-  defaultDna: function() {
-    var dataArray = G.Setup.defaultDna()
-    this.dna.fillGenesFromArray(dataArray)
-
-    return this.dna
-  }
-
+  // Update velocity
+  this.velocity.add(this.acceleration);
+  // Limit speed
+  this.velocity.limit(this.maxspeed);
+  this.position.add(this.velocity);
+  // Reset accelertion to 0 each cycle
+  this.acceleration.mult(0);
 }

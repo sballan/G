@@ -56,83 +56,30 @@ G.Creature.prototype = {
 
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
 G.Body = function () {
-  this.dna = new G.Dna();
-  this.brain = null;
-  this.position = new p5.Vector(0, 0);
-  this.rotation = 0;
   this.category = 'body';
-
-  this.currentStep = 5;
-  this.maxStep = 10;
-  this.minStep = 1;
+  this.brain = undefined;
 
   this.init();
 };
 
 G.Body.prototype = {
   init: function init() {
-    this.defaultDna();
-    this.brain = new G.Brain(this.dna);
-    this.states = this.brain.states;
+    this.brain = new G.Brain();
   },
-  setPosition: function setPosition() {
-    var self = this;
-    var args = Array.prototype.slice.call(arguments);
-
-    new p5.Vector().set.apply(self.position, args);
+  getPosition: function getPosition() {
+    return this.brain.position;
   },
-  distanceTo: function distanceTo(vector) {
-    return this.position.dist(vector);
+  getDna: function getDna() {
+    return this.brain.Dna;
   },
-  // Accepts a p5.Vector
-  calcStep: function calcStep(end) {
-    var step = this.currentStep;
-    var start = this.position;
-    var distance = start.dist(end);
-
-    return p5.Vector.lerp(start, end, step / distance);
+  render: function render() {
+    this.brain.render();
   },
   // Can accept a p5.Vector or a Creature
 
-  render: function render() {
-    fill(127, 127);
-    stroke(200);
-    ellipse(this.position.x, this.position.y, 16, 16);
-  },
-  moveToward: function moveToward(end) {
-    var self = this;
-    var endPoint;
-
-    if (end instanceof p5.Vector) endPoint = end;else endPoint = end.body.position;
-
-    var newPoint = self.calcStep(endPoint);
-    self.setPosition(newPoint);
-  },
-  moveAway: function moveAway(end) {
-    var self = this;
-    var endPoint;
-
-    if (end instanceof p5.Vector) endPoint = end;else endPoint = end.body.position;
-
-    var newPoint = self.calcStep(endPoint);
-    self.position.sub(newPoint);
-  },
-  getState: function getState() {
-    return this.brain.state;
-  },
-  setState: function setState(string) {
-    this.brain.state = string;
-  },
   update: function update() {
     this.brain.update();
     this[this.state]();
-  },
-
-  defaultDna: function defaultDna() {
-    var dataArray = G.Setup.defaultDna();
-    this.dna.fillGenesFromArray(dataArray);
-
-    return this.dna;
   }
 
 };
@@ -140,7 +87,7 @@ G.Body.prototype = {
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
 
 G.Brain = function (dna) {
-  this.dna = dna;
+  this.dna = dna || new G.Dna();
   this.characteristics = {};
   this.states = [];
   this.state = 'searchingFood';
@@ -153,6 +100,8 @@ G.Brain = function (dna) {
 
 G.Brain.prototype = {
   init: function init() {
+    var dataArray = G.Setup.defaultDna();
+    this.dna.fillGenesFromArray(dataArray);
     this.decodeDna();
   },
   lookAround: function lookAround() {},
