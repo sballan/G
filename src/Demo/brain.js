@@ -23,7 +23,7 @@ G.Brain.prototype = {
   assessTarget: function(target) {
 
   },
-  searchFood: function() {
+  searchingFood: function() {
 
   },
   decodeDna: function() {

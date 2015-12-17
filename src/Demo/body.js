@@ -37,6 +37,12 @@ G.Body.prototype = {
     return p5.Vector.lerp(start, end, step / distance)
   },
   // Can accept a p5.Vector or a Creature
+
+  render: function() {
+    fill(127, 127);
+    stroke(200);
+    ellipse(this.position.x, this.position.y, 16, 16);
+  },
   moveToward: function(end) {
     var self = this
     var endPoint

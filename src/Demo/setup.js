@@ -24,6 +24,9 @@ G.Setup = {
     })
 
     return dataArray
+  },
+  bodyView: function() {
+    
   }
 
 
