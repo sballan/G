@@ -1,84 +1,93 @@
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
 G.Body = function() {
-  this.dna = new G.Dna();
-  this.brain = null;
-  this.position = new p5.Vector(0, 0)
-  this.rotation = 0;
   this.category = 'body'
+  this.brain = undefined;
+  this.dna = undefined;
 
-  this.currentStep = 5;
-  this.maxStep = 10;
-  this.minStep = 1;
+  this.states = [];
+  this.state = 'searchingFood';
+
+  this.position = new p5.Vector(100, 100)
+  this.velocity = new p5.Vector(0, 1)
+  this.acceleration = new p5.Vector(0, 29)
+
+  this.maxspeed = 1
+  this.maxforce = 0.05
 
   this.init()
 }
 
-G.Body.prototype = {
-  init: function() {
-    this.defaultDna()
-    this.brain = new G.Brain(this.dna)
-    this.states = this.brain.states
-  },
-  setPosition: function() {
-    var self = this;
-    var args = Array.prototype.slice.call (arguments)
 
-    new p5.Vector().set.apply(self.position, args)
-  },
-  distanceTo: function(vector) {
-    return this.position.dist(vector)
-  },
-  // Accepts a p5.Vector
-  calcStep: function(end) {
-    var step = this.currentStep
-    var start = this.position
-    var distance = start.dist(end)
+G.Body.prototype.init = function() {
+  this.brain = new G.Brain()
 
-    return p5.Vector.lerp(start, end, step / distance)
-  },
-  // Can accept a p5.Vector or a Creature
+  this.dna = new G.Dna()
+  var dataArray = G.Setup.defaultDna()
 
-  render: function() {
-    fill(127, 127);
-    stroke(200);
-    ellipse(this.position.x, this.position.y, 16, 16);
-  },
-  moveToward: function(end) {
-    var self = this
-    var endPoint
+  this.dna.fillGenesFromArray(dataArray)
 
-    if(end instanceof p5.Vector) endPoint = end;
-    else endPoint = end.body.position;
+  this.decodeDna()
+}
 
-    var newPoint = self.calcStep(endPoint)
-    self.setPosition(newPoint)
-  },
-  moveAway: function(end) {
-    var self = this
-    var endPoint
+G.Body.prototype.applyForce = function(force) {
+  this.acceleration.add(force);
+}
 
-    if(end instanceof p5.Vector) endPoint = end;
-    else endPoint = end.body.position;
+G.Body.prototype.seek = function(target) {
+  // A vector pointing from the location to the target
+  var desired = p5.Vector.sub(target, this.position);
+  // Normalize desired and scale to maximum speed
+  desired.normalize();
+  desired.mult(this.maxspeed);
+  // Steering = Desired minus Velocity
+  var steer = p5.Vector.sub(desired, this.velocity);
 
-    var newPoint = self.calcStep(endPoint)
-    self.position.sub(newPoint)
-  },
-  getState: function() {
-    return this.brain.state
-  },
-  setState: function(string) {
-    this.brain.state = string
-  },
-  update: function() {
-    this.brain.update()
-    this[this.state]()
-  },
+  // Limit to maximum steering force
+  steer.limit(this.maxforce);
+  return steer;
+}
 
-  defaultDna: function() {
-    var dataArray = G.Setup.defaultDna()
-    this.dna.fillGenesFromArray(dataArray)
+G.Body.prototype.decodeDna = function() {
+  this.decodeStates()
+  this.decodeMovement()
+}
 
-    return this.dna
-  }
+G.Body.prototype.decodeStates = function() {
+  var states = this.dna.genes.map(function(gene, index) {
+    return String.fromCharCode.apply(null, gene.data)
+  })
+  this.states = states.slice(0, 10)
+  return this.states;
+}
 
+G.Body.prototype.decodeMovement = function() {
+  var speedGene = this.dna.genes[10].data[0] / 100
+  var forceGene = this.dna.genes[10].data[1] / 100
+
+  this.maxspeed = speedGene;
+  this.maxforce = forceGene
+}
+
+G.Body.prototype.render = function(p) {
+  var self = this;
+  p.pop()
+  p.stroke(255, 153, 0);
+  p.rect(self.position.x, self.position.y, 20, 20);
+  p.push()
+}
+// Can accept a p5.Vector or a Creature
+
+G.Body.prototype.update = function(p) {
+  this.brain.update()
+  this.brain[this.state]()
+
+  // Update velocity
+  this.velocity.add(this.acceleration);
+  // Limit speed
+  this.velocity.limit(this.maxspeed);
+  this.position.add(this.velocity);
+  // Reset accelertion to 0 each cycle
+  this.acceleration.mult(0);
+
+  this.render(p)
 }
