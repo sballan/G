@@ -4,8 +4,10 @@ var canvas = new G.Canvas(population)
 
 var d = 100
 canvas.addFunction('rectangle', function(p) {
+  p.pop()
   p.stroke(255, 153, 0);
-  p.rect(100, d++, 10, 10);
+  p.rect(100, 100, 10, 10);
+  p.push()
 })
 
 // G.Setup.defaultDna()
@@ -15,5 +17,5 @@ canvas.addFunction('rectangle', function(p) {
 // body.moveAway(vec)
 
 
-// console.log(body.dna.genes)
+console.log(population)
 // console.log(body.brain.decodeStates())

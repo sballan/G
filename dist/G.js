@@ -21,173 +21,6 @@ G.Body = function () {};
 
 G.Brain = function () {};
 
-G.Dna = function () {
-  this.genes = [];
-  this.alive = true;
-  this.infoDetail = 100;
-  this.fitness = 0;
-};
-
-G.Dna.prototype = {
-  createGene: function createGene() {
-    var newGene = new G.Gene();
-    for (var i = 0; i < this.infoDetail; i++) {
-      newGene.createData();
-    }
-    this.genes.push(newGene);
-
-    return this;
-  },
-  fillGenes: function fillGenes() {
-    this.genes = [];
-
-    for (var i = 0; i < this.infoDetail; i++) {
-      this.createGene();
-    }
-  },
-  fillGenesFromArray: function fillGenesFromArray(arr) {
-    var self = this;
-
-    var genes = arr.map(function (data) {
-      return new G.Gene(data);
-    });
-
-    self.genes = genes;
-    return self.genes;
-  },
-  mutateGenes: function mutateGenes(genes) {
-    return genes.map(function (gene) {
-      return gene.mutate();
-    });
-  },
-  replicate: function replicate() {
-    return this.mutateGenes(this.genes);
-  }
-
-};
-
-// You should make your creature class inherit from this class in order to let it use G behaviors.
-G.Entity = function () {
-  this.alive = true;
-  this.fitness = undefined;
-
-  this.body = new G.Body();
-};
-
-G.Entity.prototype = {
-  reproduce: function reproduce(entity) {
-    //Event emitter to Population, sending this entity and another entity, and telling them both to reproduce.  Or maybe, sending this body and another body and then calling their reproduce functions, passing in a reference to the Population itself so that the offspring can be added to the gene-pool.
-  },
-  die: function die() {
-    this.alive = false;
-  },
-  update: function update() {
-    this.body.update();
-    this.fitness = this.body.fitness;
-  }
-
-};
-
-G.Gene = function (data) {
-  this.data = [];
-  this.mutationRate = 0.1;
-  this.mutationAmount = 3;
-
-  if (data) this.data = data;
-};
-
-G.Gene.prototype = {
-  mutate: function mutate() {
-    var self = this;
-    var polarity = Math.random() < 0.5 ? -1 : 1;
-
-    var mutant = self.data.map(function (d) {
-      // change value
-      if (Math.random() < self.mutationRate) {
-        return d + polarity * self.mutationAmount;
-      }
-    });
-    // add/remove value
-    if (Math.random() < self.mutationRate * (self.mutationAmount * self.mutationRate)) {
-      var index = Math.floor(Math.random() * self.data.length);
-
-      if (polarity < 0) {
-        self.data.splice(index, 1);
-      } else {
-        // Maybe use createData here?
-        self.data.push(self.data[index]);
-      }
-    }
-  },
-  createData: function createData() {
-    var data = Math.random() * 100;
-    data = Math.floor(data);
-    this.data.push(data);
-
-    return this;
-  }
-};
-
-G.Population = function () {
-  this.startingPopulation = 5;
-  this.entities = [];
-
-  this.dnaPool = [];
-  this.init();
-};
-
-G.Population.prototype.init = function () {
-  this.createEntities();
-  this.update = this.update.bind(this);
-};
-G.Population.prototype.reproduce = function (dna1, dna2) {
-  dna1 = dna1.replicate();
-  dna2 = dna2.replicate();
-
-  var longer = dna1.genes.length > dna2.genes.length ? dna1 : dna2;
-  var shorter = dna1.genes.length <= dna2.genes.length ? dna2 : dna1;
-
-  var childGenes = longer.genes.forEach(function (gene, index) {
-    if (Math.random() < 0.5) {
-      childGenes.push(gene);
-    } else {
-      var newGene = shorter.genes[index] ? shorter.genes[index] : gene;
-      childGenes.push(newGene);
-    }
-  });
-};
-G.Population.prototype.prune = function () {
-  var self = this;
-  self.dnaPool = self.dnaPool.map(function (dna) {
-    return dna.alive;
-  });
-};
-// This function lets you make a new pool of randomly created Dna objects.  It is not the recommended way to run a simulation, and is meant for testing purposes.
-G.Population.prototype.createDnaPool = function () {
-  for (var i = 0; i < this.startingPopulation; i++) {
-    var newDna = new G.Dna();
-    newDna.fillGenes();
-    this.dnaPool.push(newDna);
-  }
-
-  return this.dnaPool;
-};
-
-G.Population.prototype.createEntities = function () {
-  for (var i = 0; i < this.startingPopulation; i++) {
-    var e = new G.Entity();
-    this.entities.push(e);
-  }
-
-  return this.entities;
-};
-
-G.Population.prototype.update = function (p) {
-  this.entities.forEach(function (entity) {
-    entity.update(p);
-  });
-};
-
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
 G.Body = function () {
   this.category = 'body';
@@ -197,9 +30,9 @@ G.Body = function () {
   this.states = [];
   this.state = 'searchingFood';
 
-  this.position = new p5.Vector(0, 0);
-  this.velocity = new p5.Vector(0, 0);
-  this.acceleration = new p5.Vector(0, 0);
+  this.position = new p5.Vector(100, 100);
+  this.velocity = new p5.Vector(0, 1);
+  this.acceleration = new p5.Vector(0, 29);
 
   this.maxspeed = 1;
   this.maxforce = 0.05;
@@ -214,6 +47,7 @@ G.Body.prototype.init = function () {
   var dataArray = G.Setup.defaultDna();
 
   this.dna.fillGenesFromArray(dataArray);
+
   this.decodeDna();
 };
 
@@ -237,6 +71,7 @@ G.Body.prototype.seek = function (target) {
 
 G.Body.prototype.decodeDna = function () {
   this.decodeStates();
+  this.decodeMovement();
 };
 
 G.Body.prototype.decodeStates = function () {
@@ -247,10 +82,24 @@ G.Body.prototype.decodeStates = function () {
   return this.states;
 };
 
-G.Body.prototype.render = function () {};
+G.Body.prototype.decodeMovement = function () {
+  var speedGene = this.dna.genes[10].data[0] / 100;
+  var forceGene = this.dna.genes[10].data[1] / 100;
+
+  this.maxspeed = speedGene;
+  this.maxforce = forceGene;
+};
+
+G.Body.prototype.render = function (p) {
+  var self = this;
+  p.pop();
+  p.stroke(255, 153, 0);
+  p.rect(self.position.x, self.position.y, 20, 20);
+  p.push();
+};
 // Can accept a p5.Vector or a Creature
 
-G.Body.prototype.update = function () {
+G.Body.prototype.update = function (p) {
   this.brain.update();
   this.brain[this.state]();
 
@@ -261,6 +110,8 @@ G.Body.prototype.update = function () {
   this.position.add(this.velocity);
   // Reset accelertion to 0 each cycle
   this.acceleration.mult(0);
+
+  this.render(p);
 };
 
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
@@ -370,6 +221,7 @@ G.Setup = {
   defaultDna: function defaultDna() {
     var states = ['searchingFood', 'searchingPrey', 'searchingMate', 'pursuingFood', 'pursuingPrey', 'pursuingMate', 'eating', 'attacking', 'reproducing', 'avoiding'];
 
+    // Fill with states
     var dataArray = states.map(function (string) {
       var data = [];
       for (var i = 0; i < string.length; i++) {
@@ -377,6 +229,15 @@ G.Setup = {
       }
       return data;
     });
+
+    //fill with random numbers
+    for (var i = 0; i < 10; i++) {
+      var data = [];
+      for (var j = 0; j < 10; j++) {
+        data.push(Math.floor(Math.random() * 100));
+      }
+      dataArray.push(data);
+    }
 
     return dataArray;
   },
@@ -387,3 +248,167 @@ G.Setup = {
 // The World class is designed to be used with p5.js and with the other classes in the Demo folder.  Feel free to write your own World class.
 
 G.World = function (p) {};
+
+G.Dna = function () {
+  this.genes = [];
+  this.alive = true;
+  this.infoDetail = 100;
+  this.fitness = 0;
+};
+
+G.Dna.prototype.createGene = function () {
+  var newGene = new G.Gene();
+  for (var i = 0; i < this.infoDetail; i++) {
+    newGene.createData();
+  }
+  this.genes.push(newGene);
+
+  return this;
+};
+G.Dna.prototype.fillGenes = function () {
+  this.genes = [];
+
+  for (var i = 0; i < this.infoDetail; i++) {
+    this.createGene();
+  }
+};
+G.Dna.prototype.fillGenesFromArray = function (arr) {
+  var self = this;
+
+  var genes = arr.map(function (data) {
+    return new G.Gene(data);
+  });
+
+  self.genes = genes;
+  return self.genes;
+};
+G.Dna.prototype.mutateGenes = function (genes) {
+  return genes.map(function (gene) {
+    return gene.mutate();
+  });
+};
+G.Dna.prototype.replicate = function () {
+  return this.mutateGenes(this.genes);
+};
+
+// You should make your creature class inherit from this class in order to let it use G behaviors.
+G.Entity = function () {
+  this.alive = true;
+  this.fitness = undefined;
+
+  this.body = new G.Body();
+};
+
+G.Entity.prototype = {
+  reproduce: function reproduce(entity) {
+    //Event emitter to Population, sending this entity and another entity, and telling them both to reproduce.  Or maybe, sending this body and another body and then calling their reproduce functions, passing in a reference to the Population itself so that the offspring can be added to the gene-pool.
+  },
+  die: function die() {
+    this.alive = false;
+  },
+  update: function update(p) {
+    this.body.update(p);
+    this.fitness = this.body.fitness;
+  }
+
+};
+
+G.Gene = function (data) {
+  this.data = [];
+  this.mutationRate = 0.1;
+  this.mutationAmount = 3;
+
+  if (data) this.data = data;
+};
+
+G.Gene.prototype = {
+  mutate: function mutate() {
+    var self = this;
+    var polarity = Math.random() < 0.5 ? -1 : 1;
+
+    var mutant = self.data.map(function (d) {
+      // change value
+      if (Math.random() < self.mutationRate) {
+        return d + polarity * self.mutationAmount;
+      }
+    });
+    // add/remove value
+    if (Math.random() < self.mutationRate * (self.mutationAmount * self.mutationRate)) {
+      var index = Math.floor(Math.random() * self.data.length);
+
+      if (polarity < 0) {
+        self.data.splice(index, 1);
+      } else {
+        // Maybe use createData here?
+        self.data.push(self.data[index]);
+      }
+    }
+  },
+  createData: function createData() {
+    var data = Math.random() * 100;
+    data = Math.floor(data);
+    this.data.push(data);
+
+    return this;
+  }
+};
+
+G.Population = function () {
+  this.startingPopulation = 5;
+  this.entities = [];
+
+  this.dnaPool = [];
+  this.init();
+};
+
+G.Population.prototype.init = function () {
+  this.createEntities();
+  this.update = this.update.bind(this);
+};
+G.Population.prototype.reproduce = function (dna1, dna2) {
+  dna1 = dna1.replicate();
+  dna2 = dna2.replicate();
+
+  var longer = dna1.genes.length > dna2.genes.length ? dna1 : dna2;
+  var shorter = dna1.genes.length <= dna2.genes.length ? dna2 : dna1;
+
+  var childGenes = longer.genes.forEach(function (gene, index) {
+    if (Math.random() < 0.5) {
+      childGenes.push(gene);
+    } else {
+      var newGene = shorter.genes[index] ? shorter.genes[index] : gene;
+      childGenes.push(newGene);
+    }
+  });
+};
+G.Population.prototype.prune = function () {
+  var self = this;
+  self.dnaPool = self.dnaPool.map(function (dna) {
+    return dna.alive;
+  });
+};
+// This function lets you make a new pool of randomly created Dna objects.  It is not the recommended way to run a simulation, and is meant for testing purposes.
+G.Population.prototype.createDnaPool = function () {
+  for (var i = 0; i < this.startingPopulation; i++) {
+    var newDna = new G.Dna();
+    newDna.fillGenes();
+    this.dnaPool.push(newDna);
+  }
+
+  return this.dnaPool;
+};
+
+G.Population.prototype.createEntities = function () {
+  for (var i = 0; i < this.startingPopulation; i++) {
+    var e = new G.Entity();
+    this.entities.push(e);
+  }
+
+  return this.entities;
+};
+
+G.Population.prototype.update = function (p) {
+  this.entities.forEach(function (entity) {
+    entity.update(p);
+  });
+};
