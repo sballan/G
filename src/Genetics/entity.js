@@ -3,6 +3,9 @@ G.Entity = function() {
   this.alive = true;
   this.fitness = undefined;
 
+  // A reference to the Entities in the population this Entity is a part of.
+  this.entities = undefined;
+
   this.body = new G.Body();
 }
 

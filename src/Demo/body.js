@@ -3,9 +3,11 @@ G.Body = function() {
   this.category = 'body'
   this.brain = undefined;
   this.dna = undefined;
+  this.timeBorn = null
 
   this.states = [];
   this.state = 'searchingFood';
+  this.timeStartedState = null
 
   this.position = new p5.Vector(100, 100)
   this.velocity = new p5.Vector(0, 1)
@@ -36,9 +38,11 @@ G.Body.prototype.applyForce = function(force) {
 G.Body.prototype.seek = function(target) {
   // A vector pointing from the location to the target
   var desired = p5.Vector.sub(target, this.position);
+
   // Normalize desired and scale to maximum speed
   desired.normalize();
   desired.mult(this.maxspeed);
+
   // Steering = Desired minus Velocity
   var steer = p5.Vector.sub(desired, this.velocity);
 
@@ -68,6 +72,10 @@ G.Body.prototype.decodeMovement = function() {
   this.maxforce = forceGene
 }
 
+G.Body.prototype.lookAround = function() {
+
+}
+
 G.Body.prototype.render = function(p) {
   var self = this;
   p.pop()
@@ -83,9 +91,13 @@ G.Body.prototype.update = function(p) {
 
   // Update velocity
   this.velocity.add(this.acceleration);
+
   // Limit speed
   this.velocity.limit(this.maxspeed);
+
+  // Add velocity to current position
   this.position.add(this.velocity);
+
   // Reset accelertion to 0 each cycle
   this.acceleration.mult(0);
 

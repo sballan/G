@@ -2,12 +2,15 @@
 
 G.Brain = function(dna) {
   this.dna = dna
-  this.characteristics = {};
   this.states = [];
   this.state = 'searchingFood';
-  this.timeStartedState = null;
+  // this.timeStartedState = p5.millis();
 
-  this.target = null;
+  this.memory = {
+    target: undefined,
+    enemies: undefined,
+    family: undefined
+  };
 
   this.init()
 
@@ -30,5 +33,5 @@ G.Brain.prototype.searchingFood = function() {
 }
 
 G.Brain.prototype.update = function() {
-  
+
 }

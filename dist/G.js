@@ -26,9 +26,11 @@ G.Body = function () {
   this.category = 'body';
   this.brain = undefined;
   this.dna = undefined;
+  this.timeBorn = null;
 
   this.states = [];
   this.state = 'searchingFood';
+  this.timeStartedState = null;
 
   this.position = new p5.Vector(100, 100);
   this.velocity = new p5.Vector(0, 1);
@@ -58,9 +60,11 @@ G.Body.prototype.applyForce = function (force) {
 G.Body.prototype.seek = function (target) {
   // A vector pointing from the location to the target
   var desired = p5.Vector.sub(target, this.position);
+
   // Normalize desired and scale to maximum speed
   desired.normalize();
   desired.mult(this.maxspeed);
+
   // Steering = Desired minus Velocity
   var steer = p5.Vector.sub(desired, this.velocity);
 
@@ -90,6 +94,8 @@ G.Body.prototype.decodeMovement = function () {
   this.maxforce = forceGene;
 };
 
+G.Body.prototype.lookAround = function () {};
+
 G.Body.prototype.render = function (p) {
   var self = this;
   p.pop();
@@ -105,9 +111,13 @@ G.Body.prototype.update = function (p) {
 
   // Update velocity
   this.velocity.add(this.acceleration);
+
   // Limit speed
   this.velocity.limit(this.maxspeed);
+
+  // Add velocity to current position
   this.position.add(this.velocity);
+
   // Reset accelertion to 0 each cycle
   this.acceleration.mult(0);
 
@@ -118,12 +128,15 @@ G.Body.prototype.update = function (p) {
 
 G.Brain = function (dna) {
   this.dna = dna;
-  this.characteristics = {};
   this.states = [];
   this.state = 'searchingFood';
-  this.timeStartedState = null;
+  // this.timeStartedState = p5.millis();
 
-  this.target = null;
+  this.memory = {
+    target: undefined,
+    enemies: undefined,
+    family: undefined
+  };
 
   this.init();
 };
@@ -140,11 +153,13 @@ G.Brain.prototype.update = function () {};
 
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
 
-G.Canvas = function (population) {
-  this.population = population;
+G.Canvas = function (world) {
+  var self = this;
+
+  this.world = world;
+
   this.drawFunctions = {};
   this.p5 = undefined;
-  var self = this;
 
   var width = window.innerWidth;
   var height = window.innerHeight;
@@ -191,8 +206,9 @@ G.Canvas = function (population) {
 
 G.Canvas.prototype.init = function () {
   var self = this;
-  var update = self.population.update; //.bind(self.population);
-  self.addFunction('population', update, self);
+
+  var update = self.world.update; //.bind(self.world.population);
+  self.addFunction('world', update, self.world);
 };
 
 // This function executes all functions in teh drawFunctions object
@@ -247,7 +263,39 @@ G.Setup = {
 
 // The World class is designed to be used with p5.js and with the other classes in the Demo folder.  Feel free to write your own World class.
 
-G.World = function (p) {};
+G.World = function () {
+  this.population = null;
+  this.food = null;
+
+  this.items = [];
+
+  this.container = [];
+};
+
+G.World.prototype.addPopulation = function (population) {
+  this.population = population;
+  this.attachReferences();
+};
+
+G.World.prototype.addFood = function (food) {
+  this.food = food;
+};
+
+G.World.prototype.addItem = function (item) {
+  this.items.push(item);
+};
+
+G.World.prototype.attachReferences = function () {
+  var self = this;
+  self.population.forEach(function (entity) {
+    entity.body.world = self;
+  });
+};
+
+G.World.prototype.update = function (p) {
+  //this.food.update()
+  this.population.update(p);
+};
 
 G.Dna = function () {
   this.genes = [];
@@ -295,6 +343,9 @@ G.Dna.prototype.replicate = function () {
 G.Entity = function () {
   this.alive = true;
   this.fitness = undefined;
+
+  // A reference to the Entities in the population this Entity is a part of.
+  this.entities = undefined;
 
   this.body = new G.Body();
 };
@@ -399,6 +450,7 @@ G.Population.prototype.createDnaPool = function () {
 };
 
 G.Population.prototype.createEntities = function () {
+  var self = this;
   for (var i = 0; i < this.startingPopulation; i++) {
     var e = new G.Entity();
     this.entities.push(e);

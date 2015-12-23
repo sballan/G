@@ -1,6 +1,9 @@
+var world = new G.World()
 var population = new G.Population()
 
-var canvas = new G.Canvas(population)
+world.addPopulation(population)
+
+var canvas = new G.Canvas(world)
 
 var d = 100
 canvas.addFunction('rectangle', function(p) {
@@ -17,5 +20,5 @@ canvas.addFunction('rectangle', function(p) {
 // body.moveAway(vec)
 
 
-console.log(population)
+console.log(world)
 // console.log(body.brain.decodeStates())

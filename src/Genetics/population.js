@@ -46,6 +46,7 @@ G.Population.prototype.createDnaPool = function() {
 }
 
 G.Population.prototype.createEntities = function() {
+  var self = this;
   for(var i = 0; i < this.startingPopulation; i++) {
     var e = new G.Entity();
     this.entities.push(e);

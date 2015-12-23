@@ -1,10 +1,12 @@
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
 
-G.Canvas = function(population) {
-  this.population = population
+G.Canvas = function(world) {
+  var self = this;
+
+  this.world = world
+
   this.drawFunctions = {};
   this.p5 = undefined;
-  var self = this;
 
 
 
@@ -53,8 +55,9 @@ G.Canvas = function(population) {
 
 G.Canvas.prototype.init = function() {
   var self = this;
-  var update = self.population.update  //.bind(self.population);
-  self.addFunction('population', update, self)
+
+  var update = self.world.update  //.bind(self.world.population);
+  self.addFunction('world', update, self.world)
 }
 
 // This function executes all functions in teh drawFunctions object
