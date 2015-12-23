@@ -10,8 +10,12 @@ G.Canvas = function(world) {
 
 
 
-  var width = window.innerWidth;
-  var height = window.innerHeight;
+  var width = this.world.width || window.innerWidth;
+  var height = this.world.height || window.innerHeight;
+
+  this.world.width = width;
+  this.world.height = height;
+
 
   function canvas(p) {
     p.setup = function() {

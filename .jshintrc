@@ -5,6 +5,7 @@
         "debug": true,
         "node": false,
         "unused": false,
+        "esnext": true,
         "globals": {
                 "$": false,
                 "window": false,
@@ -19,7 +20,7 @@
                 "THREE": false,
                 "TweenMax": false,
                 "TimelineMax": false,
-		"p5": false
+		            "p5": false
         }
 
 }

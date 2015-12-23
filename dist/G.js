@@ -27,16 +27,16 @@ G.Body = function () {
   this.ID = Math.floor(Math.random() * 1000000);
   this.brain = undefined;
   this.dna = undefined;
-  this.timeBorn = null;
+  this.timeBorn = new p5().millis();
   this.ancestors = [];
 
   this.states = [];
   this.state = 'searchingFood';
-  this.timeStartedState = null;
+  this.timeStartedState = new p5().millis();
 
   this.position = new p5.Vector(100, 100);
-  this.velocity = new p5.Vector(0, 1);
-  this.acceleration = new p5.Vector(0, 29);
+  this.velocity = new p5.Vector(0, 0);
+  this.acceleration = new p5.Vector(0, 0);
 
   this.viewDistance = 20;
   this.maxspeed = 1;
@@ -46,14 +46,15 @@ G.Body = function () {
 };
 
 G.Body.prototype.init = function () {
-  this.brain = new G.Brain();
+  var self = this;
 
-  this.dna = new G.Dna();
+  self.dna = new G.Dna();
   var dataArray = G.Setup.defaultDna();
+  self.dna.fillGenesFromArray(dataArray);
 
-  this.dna.fillGenesFromArray(dataArray);
+  self.decodeDna();
 
-  this.decodeDna();
+  self.brain = new G.Brain(self);
 };
 
 G.Body.prototype.applyForce = function (force) {
@@ -97,15 +98,18 @@ G.Body.prototype.decodeMovement = function () {
   this.maxforce = forceGene;
 };
 
+// returns an array of
 G.Body.prototype.lookAround = function () {
   var self = this;
   // Loop through all entities in the population
-  var surroundings = self.world.population.entities.map(function (entity) {
+  var surroundings = [];
+
+  self.world.population.entities.forEach(function (entity) {
     // Calculate the distance to each of their bodies
     targetDistance = p5.Vector.dist(self.position, entity.body.position);
     // If it's close enough, pass it along to seeBody().
     if (targetDistance <= self.viewDistance) {
-      return self.seeBody(entity.body);
+      surroundings.push(self.seeBody(entity.body));
     }
   });
 
@@ -126,21 +130,23 @@ G.Body.prototype.seeBody = function (body) {
   return data;
 };
 
+// Returns false if no ancestor is shared, and returns the closeness of that ancestor if it is shared (number).
 G.Body.prototype.checkFamily = function (body) {
   var self = this;
   var isFamily = false;
+  var relatedness;
   if (self.ancestors.length) {
-    self.ancestors.forEach(function (ancestor) {
+    for (var i = 0; i < self.ancestors.length; i++) {
       if (body.ancestors.indexOf(ancestor) > 0) {
         self.brain.memory.family[body.ID] = body;
         isFamily = true;
+        relatedness = i;
+        break;
       }
-    });
+    }
   }
 
-  if (isFamily) return true;
-
-  return false;
+  if (isFamily) return relatedness;else return false;
 };
 
 G.Body.prototype.checkFriend = function (body) {
@@ -187,11 +193,11 @@ G.Body.prototype.update = function (p) {
 
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
 
-G.Brain = function (dna) {
-  this.dna = dna;
-  this.states = [];
-  this.state = 'searchingFood';
-  // this.timeStartedState = p5.millis();
+G.Brain = function (body) {
+  this.dna = body.dna;
+  this.body = body;
+  this.timeStartedState = new p5().millis();
+  console.dir(p5);
 
   this.memory = {
     target: undefined,
@@ -205,11 +211,23 @@ G.Brain = function (dna) {
 
 G.Brain.prototype.init = function () {};
 
-G.Brain.prototype.lookAround = function () {};
+G.Brain.prototype.assessSurroundings = function () {};
 
 G.Brain.prototype.assessTarget = function (target) {};
 
-G.Brain.prototype.searchingFood = function () {};
+G.Brain.prototype.searchingFood = function () {
+  var self = this;
+  if (!self.memory.target) {
+    var x = new p5().random(0, self.body.world.width);
+    var y = new p5().random(0, self.body.world.height);
+
+    self.memory.target = new p5.Vector(x, y);
+  }
+
+  var force = self.body.seek(self.memory.target);
+
+  self.body.applyForce(force);
+};
 
 G.Brain.prototype.update = function () {};
 
@@ -223,8 +241,11 @@ G.Canvas = function (world) {
   this.drawFunctions = {};
   this.p5 = undefined;
 
-  var width = window.innerWidth;
-  var height = window.innerHeight;
+  var width = this.world.width || window.innerWidth;
+  var height = this.world.height || window.innerHeight;
+
+  this.world.width = width;
+  this.world.height = height;
 
   function canvas(p) {
     p.setup = function () {
@@ -349,7 +370,7 @@ G.World.prototype.addItem = function (item) {
 
 G.World.prototype.attachReferences = function () {
   var self = this;
-  self.population.forEach(function (entity) {
+  self.population.entities.forEach(function (entity) {
     entity.body.world = self;
   });
 };

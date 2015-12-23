@@ -25,7 +25,7 @@ G.World.prototype.addItem = function(item) {
 
 G.World.prototype.attachReferences = function() {
   var self = this;
-  self.population.forEach(function(entity) {
+  self.population.entities.forEach(function(entity) {
     entity.body.world = self
   })
 }
