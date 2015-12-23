@@ -20,3 +20,5 @@ G.World = function() {}
 G.Body = function() {}
 
 G.Brain = function() {}
+
+G.Food = function() {}

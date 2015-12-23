@@ -25,6 +25,8 @@ G.World.prototype.addItem = function(item) {
 
 G.World.prototype.attachReferences = function() {
   var self = this;
+
+  // Gives each Entity's Body a reference to this World.
   self.population.entities.forEach(function(entity) {
     entity.body.world = self
   })
