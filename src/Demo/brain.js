@@ -8,8 +8,9 @@ G.Brain = function(dna) {
 
   this.memory = {
     target: undefined,
-    enemies: undefined,
-    family: undefined
+    family: undefined,
+    friends: undefined,
+    enemies: undefined
   };
 
   this.init()

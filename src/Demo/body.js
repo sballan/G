@@ -1,9 +1,11 @@
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
 G.Body = function() {
   this.category = 'body'
+  this.ID = Math.floor(Math.random() * 1000000)
   this.brain = undefined;
   this.dna = undefined;
   this.timeBorn = null
+  this.ancestors = []
 
   this.states = [];
   this.state = 'searchingFood';
@@ -13,6 +15,7 @@ G.Body = function() {
   this.velocity = new p5.Vector(0, 1)
   this.acceleration = new p5.Vector(0, 29)
 
+  this.viewDistance = 20;
   this.maxspeed = 1
   this.maxforce = 0.05
 
@@ -73,6 +76,63 @@ G.Body.prototype.decodeMovement = function() {
 }
 
 G.Body.prototype.lookAround = function() {
+  var self = this;
+  // Loop through all entities in the population
+  var surroundings = self.world.population.entities.map(function(entity) {
+    // Calculate the distance to each of their bodies
+    targetDistance = p5.Vector.dist(self.position, entity.body.position)
+    // If it's close enough, pass it along to seeBody().
+    if(targetDistance <= self.viewDistance) {
+      return self.seeBody(entity.body)
+    }
+  })
+
+  return surroundings;
+}
+
+// This function should assess the Body that it's looking at, and put it in the correct place in the Brain's memory.
+G.Body.prototype.seeBody = function(body) {
+  var self = this;
+
+  var data = {
+    body: body,
+    isFamily: self.checkFamily(body),
+    isFriend: self.checkFriend(body),
+    isEnemy: self.checkEnemy(body)
+  }
+
+  return data;
+}
+
+G.Body.prototype.checkFamily = function(body) {
+  var self = this
+  var isFamily = false;
+  if(self.ancestors.length) {
+    self.ancestors.forEach(function(ancestor) {
+      if(body.ancestors.indexOf(ancestor) > 0) {
+        self.brain.memory.family[body.ID] = body
+        isFamily = true;
+      }
+    })
+  }
+
+  if(isFamily) return true
+
+  return false
+}
+
+G.Body.prototype.checkFriend = function(body) {
+  var self = this
+  if(self.brain.memory.friends[body.ID]) return true
+
+  return false
+}
+
+G.Body.prototype.checkEnemy = function(body) {
+  var self = this
+  if(self.brain.memory.enemies[body.ID]) return true
+
+  return false
 
 }
 
