@@ -32,7 +32,8 @@ G.World.prototype.attachReferences = function() {
   })
 }
 
-G.World.prototype.update = function(p) {
-  //this.food.update()
-  this.population.update(p)
+G.World.prototype.update = function(injection) {
+  injection.world = this;
+
+  this.population.update(injection)
 }

@@ -40,9 +40,12 @@ G.Body.prototype.render = function(p) {
 }
 
 // Can accept a p5.Vector or a Creature
-G.Body.prototype.update = function(p) {
-  this.brain.update()
-  this.brain[this.state]()
+G.Body.prototype.update = function(injection) {
+  // Attach the body to the depency injection
+  injection.body = this;
+
+  this.brain.update(injection)
+  this.brain[this.state](injection)
 
   // Update velocity
   this.velocity.add(this.acceleration);
@@ -56,5 +59,5 @@ G.Body.prototype.update = function(p) {
   // Reset accelertion to 0 each cycle
   this.acceleration.mult(0);
 
-  this.render(p)
+  this.render(injection.p)
 }

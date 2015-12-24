@@ -6,7 +6,8 @@ world.addPopulation(population)
 var canvas = new G.Canvas(world)
 
 var d = 100
-canvas.addFunction('rectangle', function(p) {
+canvas.addFunction('rectangle', function(injection) {
+  var p = injection.p
   p.pop()
   p.stroke(255, 153, 0);
   p.rect(100, 100, 10, 10);

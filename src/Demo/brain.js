@@ -1,11 +1,10 @@
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
 
 G.Brain = function(body) {
-  this.dna = body.dna
-  this.body = body
   this.timeStartedState = new p5().millis();
   console.dir(p5)
 
+  // These should be hash maps that use the Body.ID property for lookup
   this.memory = {
     target: undefined,
     family: undefined,
@@ -29,20 +28,23 @@ G.Brain.prototype.assessTarget = function(target) {
 
 }
 
-G.Brain.prototype.searchingFood = function() {
+G.Brain.prototype.searchingFood = function(injection) {
+  var world = injection.world
+  var body = injection.body
+
   var self = this;
   if(!self.memory.target) {
-    var x = new p5().random(0, self.body.world.width);
-    var y = new p5().random(0, self.body.world.height);
+    var x = new p5().random(0, world.width);
+    var y = new p5().random(0, world.height);
 
     self.memory.target = new p5.Vector(x, y)
   }
 
-  var force = self.body.seek(self.memory.target)
+  var force = body.seek(self.memory.target)
 
-  self.body.applyForce(force)
+  body.applyForce(force)
 }
 
-G.Brain.prototype.update = function() {
+G.Brain.prototype.update = function(world) {
 
 }

@@ -21,6 +21,8 @@ G.Body.prototype.decodeMovement = function() {
 }
 
 G.Body.prototype.decodeTraits = function() {
+  var self = this;
+  
   var traits = {
     health: {},
     torso: {},
@@ -37,44 +39,45 @@ G.Body.prototype.decodeTraits = function() {
   decodeClaws(traits)
   decodeTail(traits)
 
-  this.traits = traits;
+  self.traits = traits;
 
   return traits
-}
 
-G.Body.prototype.decodeHealth = function(traits) {
-  traits.health.maxEnergy = this.dna.genes[10].data[2]
-  return traits;
-}
+  // Private Functions
+  function decodeHealth(traits) {
+    traits.health.maxEnergy = self.dna.genes[10].data[2]
+    return traits;
+  }
 
-G.Body.prototype.decodeTorso = function(traits) {
-  traits.torso.position = this.dna.genes[11].data[0]
-  traits.torso.height = this.dna.genes[11].data[1]
-  traits.torso.width = this.dna.genes[11].data[2]
-  traits.torso.force = this.dna.genes[11].data[3]
-  traits.torso.color = this.dna.genes[11].data[4]
-}
+  function decodeTorso(traits) {
+    traits.torso.position = self.dna.genes[11].data[0]
+    traits.torso.height = self.dna.genes[11].data[1]
+    traits.torso.width = self.dna.genes[11].data[2]
+    traits.torso.force = self.dna.genes[11].data[3]
+    traits.torso.color = self.dna.genes[11].data[4]
+  }
 
-G.Body.prototype.decodeEyes = function(traits) {
-  traits.eyes.position = this.dna.genes[12].data[0]
-  traits.eyes.size = this.dna.genes[12].data[1]
-  traits.eyes.color = this.dna.genes[12].data[2]
-}
+  function decodeEyes(traits) {
+    traits.eyes.position = self.dna.genes[12].data[0]
+    traits.eyes.size = self.dna.genes[12].data[1]
+    traits.eyes.color = self.dna.genes[12].data[2]
+  }
 
-G.Body.prototype.decodeMouth = function(traits) {
-  traits.mouth.position = this.dna.genes[13].data[0]
-  traits.mouth.size = this.dna.genes[13].data[1]
-  traits.mouth.color = this.dna.genes[13].data[2]
-}
+  function decodeMouth(traits) {
+    traits.mouth.position = self.dna.genes[13].data[0]
+    traits.mouth.size = self.dna.genes[13].data[1]
+    traits.mouth.color = self.dna.genes[13].data[2]
+  }
 
-G.Body.prototype.decodeClaws = function(traits) {
-  traits.mouth.position = this.dna.genes[14].data[0]
-  traits.mouth.size = this.dna.genes[14].data[1]
-  traits.mouth.color = this.dna.genes[14].data[2]
-}
+  function decodeClaws(traits) {
+    traits.mouth.position = self.dna.genes[14].data[0]
+    traits.mouth.size = self.dna.genes[14].data[1]
+    traits.mouth.color = self.dna.genes[14].data[2]
+  }
 
-G.Body.prototype.decodeTail = function(traits) {
-  traits.mouth.position = this.dna.genes[15].data[0]
-  traits.mouth.size = this.dna.genes[15].data[1]
-  traits.mouth.color = this.dna.genes[15].data[2]
+  function decodeTail(traits) {
+    traits.mouth.position = self.dna.genes[15].data[0]
+    traits.mouth.size = self.dna.genes[15].data[1]
+    traits.mouth.color = self.dna.genes[15].data[2]
+  }
 }

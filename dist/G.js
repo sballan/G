@@ -83,11 +83,10 @@ G.Food = function () {};
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
 
 G.Brain = function (body) {
-  this.dna = body.dna;
-  this.body = body;
   this.timeStartedState = new p5().millis();
   console.dir(p5);
 
+  // These should be hash maps that use the Body.ID property for lookup
   this.memory = {
     target: undefined,
     family: undefined,
@@ -104,21 +103,24 @@ G.Brain.prototype.assessSurroundings = function () {};
 
 G.Brain.prototype.assessTarget = function (target) {};
 
-G.Brain.prototype.searchingFood = function () {
+G.Brain.prototype.searchingFood = function (injection) {
+  var world = injection.world;
+  var body = injection.body;
+
   var self = this;
   if (!self.memory.target) {
-    var x = new p5().random(0, self.body.world.width);
-    var y = new p5().random(0, self.body.world.height);
+    var x = new p5().random(0, world.width);
+    var y = new p5().random(0, world.height);
 
     self.memory.target = new p5.Vector(x, y);
   }
 
-  var force = self.body.seek(self.memory.target);
+  var force = body.seek(self.memory.target);
 
-  self.body.applyForce(force);
+  body.applyForce(force);
 };
 
-G.Brain.prototype.update = function () {};
+G.Brain.prototype.update = function (world) {};
 
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
 
@@ -169,7 +171,8 @@ G.Canvas = function (world) {
       p.stroke(255, 153, 0);
       p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
 
-      self.draw(p);
+      var injection = { p: p };
+      self.draw(injection);
     };
   }
   this.p5 = new p5(canvas, 'p5-canvas');
@@ -180,15 +183,15 @@ G.Canvas.prototype.init = function () {
   var self = this;
 
   var update = self.world.update; //.bind(self.world.population);
-  self.addFunction('world', update, self.world);
+  self.addFunction('worldUpdate', update, self.world);
 };
 
 // This function executes all functions in teh drawFunctions object
-G.Canvas.prototype.draw = function (p) {
+G.Canvas.prototype.draw = function (injection) {
   var funcs = this.drawFunctions;
 
   for (var func in funcs) {
-    if (typeof funcs[func] === 'function') funcs[func](p);
+    if (typeof funcs[func] === 'function') funcs[func](injection);
   }
 };
 
@@ -274,9 +277,10 @@ G.World.prototype.attachReferences = function () {
   });
 };
 
-G.World.prototype.update = function (p) {
-  //this.food.update()
-  this.population.update(p);
+G.World.prototype.update = function (injection) {
+  injection.world = this;
+
+  this.population.update(injection);
 };
 
 G.Dna = function () {
@@ -339,8 +343,8 @@ G.Entity.prototype = {
   die: function die() {
     this.alive = false;
   },
-  update: function update(p) {
-    this.body.update(p);
+  update: function update(injection) {
+    this.body.update(injection);
     this.fitness = this.body.fitness;
   }
 
@@ -470,6 +474,8 @@ G.Body.prototype.decodeMovement = function () {
 };
 
 G.Body.prototype.decodeTraits = function () {
+  var self = this;
+
   var traits = {
     health: {},
     torso: {},
@@ -486,46 +492,47 @@ G.Body.prototype.decodeTraits = function () {
   decodeClaws(traits);
   decodeTail(traits);
 
-  this.traits = traits;
+  self.traits = traits;
 
   return traits;
-};
 
-G.Body.prototype.decodeHealth = function (traits) {
-  traits.health.maxEnergy = this.dna.genes[10].data[2];
-  return traits;
-};
+  // Private Functions
+  function decodeHealth(traits) {
+    traits.health.maxEnergy = self.dna.genes[10].data[2];
+    return traits;
+  }
 
-G.Body.prototype.decodeTorso = function (traits) {
-  traits.torso.position = this.dna.genes[11].data[0];
-  traits.torso.height = this.dna.genes[11].data[1];
-  traits.torso.width = this.dna.genes[11].data[2];
-  traits.torso.force = this.dna.genes[11].data[3];
-  traits.torso.color = this.dna.genes[11].data[4];
-};
+  function decodeTorso(traits) {
+    traits.torso.position = self.dna.genes[11].data[0];
+    traits.torso.height = self.dna.genes[11].data[1];
+    traits.torso.width = self.dna.genes[11].data[2];
+    traits.torso.force = self.dna.genes[11].data[3];
+    traits.torso.color = self.dna.genes[11].data[4];
+  }
 
-G.Body.prototype.decodeEyes = function (traits) {
-  traits.eyes.position = this.dna.genes[12].data[0];
-  traits.eyes.size = this.dna.genes[12].data[1];
-  traits.eyes.color = this.dna.genes[12].data[2];
-};
+  function decodeEyes(traits) {
+    traits.eyes.position = self.dna.genes[12].data[0];
+    traits.eyes.size = self.dna.genes[12].data[1];
+    traits.eyes.color = self.dna.genes[12].data[2];
+  }
 
-G.Body.prototype.decodeMouth = function (traits) {
-  traits.mouth.position = this.dna.genes[13].data[0];
-  traits.mouth.size = this.dna.genes[13].data[1];
-  traits.mouth.color = this.dna.genes[13].data[2];
-};
+  function decodeMouth(traits) {
+    traits.mouth.position = self.dna.genes[13].data[0];
+    traits.mouth.size = self.dna.genes[13].data[1];
+    traits.mouth.color = self.dna.genes[13].data[2];
+  }
 
-G.Body.prototype.decodeClaws = function (traits) {
-  traits.mouth.position = this.dna.genes[14].data[0];
-  traits.mouth.size = this.dna.genes[14].data[1];
-  traits.mouth.color = this.dna.genes[14].data[2];
-};
+  function decodeClaws(traits) {
+    traits.mouth.position = self.dna.genes[14].data[0];
+    traits.mouth.size = self.dna.genes[14].data[1];
+    traits.mouth.color = self.dna.genes[14].data[2];
+  }
 
-G.Body.prototype.decodeTail = function (traits) {
-  traits.mouth.position = this.dna.genes[15].data[0];
-  traits.mouth.size = this.dna.genes[15].data[1];
-  traits.mouth.color = this.dna.genes[15].data[2];
+  function decodeTail(traits) {
+    traits.mouth.position = self.dna.genes[15].data[0];
+    traits.mouth.size = self.dna.genes[15].data[1];
+    traits.mouth.color = self.dna.genes[15].data[2];
+  }
 };
 
 // This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
@@ -570,9 +577,12 @@ G.Body.prototype.render = function (p) {
 };
 
 // Can accept a p5.Vector or a Creature
-G.Body.prototype.update = function (p) {
-  this.brain.update();
-  this.brain[this.state]();
+G.Body.prototype.update = function (injection) {
+  // Attach the body to the depency injection
+  injection.body = this;
+
+  this.brain.update(injection);
+  this.brain[this.state](injection);
 
   // Update velocity
   this.velocity.add(this.acceleration);
@@ -586,7 +596,7 @@ G.Body.prototype.update = function (p) {
   // Reset accelertion to 0 each cycle
   this.acceleration.mult(0);
 
-  this.render(p);
+  this.render(injection.p);
 };
 
 // returns an array of
