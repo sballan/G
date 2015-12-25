@@ -16,8 +16,8 @@ G.Entity.prototype = {
   die: function() {
     this.alive = false;
   },
-  update: function(injection) {
-    this.body.update(injection)
+  update: function(dep) {
+    this.body.update(dep)
     this.fitness = this.body.fitness
   }
 

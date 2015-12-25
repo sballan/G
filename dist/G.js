@@ -103,21 +103,11 @@ G.Brain.prototype.assessSurroundings = function () {};
 
 G.Brain.prototype.assessTarget = function (target) {};
 
-G.Brain.prototype.searchingFood = function (injection) {
-  var world = injection.world;
-  var body = injection.body;
+G.Brain.prototype.searchingFood = function (dep) {
+  dep.brain = this;
+  var body = dep.body;
 
-  var self = this;
-  if (!self.memory.target) {
-    var x = new p5().random(0, world.width);
-    var y = new p5().random(0, world.height);
-
-    self.memory.target = new p5.Vector(x, y);
-  }
-
-  var force = body.seek(self.memory.target);
-
-  body.applyForce(force);
+  body.searching(dep);
 };
 
 G.Brain.prototype.update = function (world) {};
@@ -171,8 +161,8 @@ G.Canvas = function (world) {
       p.stroke(255, 153, 0);
       p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
 
-      var injection = { p: p };
-      self.draw(injection);
+      var dep = { p: p };
+      self.draw(dep);
     };
   }
   this.p5 = new p5(canvas, 'p5-canvas');
@@ -187,11 +177,11 @@ G.Canvas.prototype.init = function () {
 };
 
 // This function executes all functions in teh drawFunctions object
-G.Canvas.prototype.draw = function (injection) {
+G.Canvas.prototype.draw = function (dep) {
   var funcs = this.drawFunctions;
 
   for (var func in funcs) {
-    if (typeof funcs[func] === 'function') funcs[func](injection);
+    if (typeof funcs[func] === 'function') funcs[func](dep);
   }
 };
 
@@ -277,10 +267,10 @@ G.World.prototype.attachReferences = function () {
   });
 };
 
-G.World.prototype.update = function (injection) {
-  injection.world = this;
+G.World.prototype.update = function (dep) {
+  dep.world = this;
 
-  this.population.update(injection);
+  this.population.update(dep);
 };
 
 G.Dna = function () {
@@ -343,8 +333,8 @@ G.Entity.prototype = {
   die: function die() {
     this.alive = false;
   },
-  update: function update(injection) {
-    this.body.update(injection);
+  update: function update(dep) {
+    this.body.update(dep);
     this.fitness = this.body.fitness;
   }
 
@@ -548,8 +538,57 @@ G.Body.prototype.init = function () {
   self.brain = new G.Brain(self);
 };
 
+G.Body.prototype.render = function (p) {
+  var self = this;
+  p.pop();
+  p.stroke(255, 153, 0);
+  p.rect(self.position.x, self.position.y, 20, 20);
+  p.push();
+};
+
+// Can accept a p5.Vector or a Creature
+G.Body.prototype.update = function (dep) {
+  // Attach the body to the depency dep
+  dep.body = this;
+  dep.brain = this.brain;
+
+  this.brain.update(dep);
+  this.brain[this.state](dep);
+
+  // Update velocity
+  this.velocity.add(this.acceleration);
+
+  // Limit speed
+  this.velocity.limit(this.maxspeed);
+
+  // Add velocity to current position
+  this.position.add(this.velocity);
+
+  // Reset accelertion to 0 each cycle
+  this.acceleration.mult(0);
+
+  this.render(dep.p);
+};
+
 G.Body.prototype.applyForce = function (force) {
   this.acceleration.add(force);
+};
+
+G.Body.prototype.searching = function (dep) {
+  var world = dep.world;
+  var body = dep.body;
+  var brain = dep.brain;
+
+  if (!brain.memory.target) {
+    var x = new p5().random(0, world.width);
+    var y = new p5().random(0, world.height);
+
+    brain.memory.target = new p5.Vector(x, y);
+  }
+
+  var force = body.seek(brain.memory.target);
+
+  body.applyForce(force);
 };
 
 G.Body.prototype.seek = function (target) {
@@ -566,37 +605,6 @@ G.Body.prototype.seek = function (target) {
   // Limit to maximum steering force
   steer.limit(this.maxforce);
   return steer;
-};
-
-G.Body.prototype.render = function (p) {
-  var self = this;
-  p.pop();
-  p.stroke(255, 153, 0);
-  p.rect(self.position.x, self.position.y, 20, 20);
-  p.push();
-};
-
-// Can accept a p5.Vector or a Creature
-G.Body.prototype.update = function (injection) {
-  // Attach the body to the depency injection
-  injection.body = this;
-
-  this.brain.update(injection);
-  this.brain[this.state](injection);
-
-  // Update velocity
-  this.velocity.add(this.acceleration);
-
-  // Limit speed
-  this.velocity.limit(this.maxspeed);
-
-  // Add velocity to current position
-  this.position.add(this.velocity);
-
-  // Reset accelertion to 0 each cycle
-  this.acceleration.mult(0);
-
-  this.render(injection.p);
 };
 
 // returns an array of

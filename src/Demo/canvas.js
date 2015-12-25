@@ -50,8 +50,8 @@ G.Canvas = function(world) {
       p.stroke(255, 153, 0);
       p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
 
-      var injection = {p: p}
-      self.draw(injection)
+      var dep = {p: p}
+      self.draw(dep)
     }
   }
   this.p5 =  new p5(canvas, 'p5-canvas')
@@ -66,11 +66,11 @@ G.Canvas.prototype.init = function() {
 }
 
 // This function executes all functions in teh drawFunctions object
-G.Canvas.prototype.draw = function(injection) {
+G.Canvas.prototype.draw = function(dep) {
   var funcs = this.drawFunctions
 
   for(var func in funcs) {
-    if(typeof funcs[func] === 'function') funcs[func](injection)
+    if(typeof funcs[func] === 'function') funcs[func](dep)
   }
 }
 

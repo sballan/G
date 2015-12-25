@@ -32,8 +32,8 @@ G.World.prototype.attachReferences = function() {
   })
 }
 
-G.World.prototype.update = function(injection) {
-  injection.world = this;
+G.World.prototype.update = function(dep) {
+  dep.world = this;
 
-  this.population.update(injection)
+  this.population.update(dep)
 }

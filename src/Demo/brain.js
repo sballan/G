@@ -28,21 +28,11 @@ G.Brain.prototype.assessTarget = function(target) {
 
 }
 
-G.Brain.prototype.searchingFood = function(injection) {
-  var world = injection.world
-  var body = injection.body
+G.Brain.prototype.searchingFood = function(dep) {
+  dep.brain = this;
+  var body = dep.body;
 
-  var self = this;
-  if(!self.memory.target) {
-    var x = new p5().random(0, world.width);
-    var y = new p5().random(0, world.height);
-
-    self.memory.target = new p5.Vector(x, y)
-  }
-
-  var force = body.seek(self.memory.target)
-
-  body.applyForce(force)
+  body.searching(dep)
 }
 
 G.Brain.prototype.update = function(world) {
