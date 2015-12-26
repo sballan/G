@@ -1,15 +1,21 @@
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
 
-G.Canvas = function(population) {
-  this.population = population
-  this.drawFunctions = {};
-  this.p5 = undefined;
+G.Canvas = function(world) {
   var self = this;
 
+  this.world = world
+
+  this.drawFunctions = {};
+  this.p5 = undefined;
 
 
-  var width = window.innerWidth;
-  var height = window.innerHeight;
+
+  var width = this.world.width || window.innerWidth;
+  var height = this.world.height || window.innerHeight;
+
+  this.world.width = width;
+  this.world.height = height;
+
 
   function canvas(p) {
     p.setup = function() {
@@ -44,7 +50,8 @@ G.Canvas = function(population) {
       p.stroke(255, 153, 0);
       p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
 
-      self.draw(p)
+      var dep = {p: p}
+      self.draw(dep)
     }
   }
   this.p5 =  new p5(canvas, 'p5-canvas')
@@ -53,16 +60,17 @@ G.Canvas = function(population) {
 
 G.Canvas.prototype.init = function() {
   var self = this;
-  var update = self.population.update  //.bind(self.population);
-  self.addFunction('population', update, self)
+
+  var update = self.world.update  //.bind(self.world.population);
+  self.addFunction('worldUpdate', update, self.world)
 }
 
 // This function executes all functions in teh drawFunctions object
-G.Canvas.prototype.draw = function(p) {
+G.Canvas.prototype.draw = function(dep) {
   var funcs = this.drawFunctions
 
   for(var func in funcs) {
-    if(typeof funcs[func] === 'function') funcs[func](p)
+    if(typeof funcs[func] === 'function') funcs[func](dep)
   }
 }
 

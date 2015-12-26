@@ -1,0 +1,26 @@
+{
+        "asi": true,
+        "lastsemic": false,
+        "unused": true,
+        "debug": true,
+        "node": false,
+        "unused": false,
+        "esnext": true,
+        "globals": {
+                "$": false,
+                "window": false,
+                "jasmine": false,
+                "it": false,
+                "describe": false,
+                "expect": false,
+                "beforeEach": false,
+                "require": false,
+                "module": false,
+                "console": false,
+                "THREE": false,
+                "TweenMax": false,
+                "TimelineMax": false,
+		            "p5": false
+        }
+
+}

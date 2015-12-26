@@ -3,6 +3,9 @@ G.Entity = function() {
   this.alive = true;
   this.fitness = undefined;
 
+  // A reference to the Entities in the population this Entity is a part of.
+  this.entities = undefined;
+
   this.body = new G.Body();
 }
 
@@ -13,8 +16,8 @@ G.Entity.prototype = {
   die: function() {
     this.alive = false;
   },
-  update: function(p) {
-    this.body.update(p)
+  update: function(dep) {
+    this.body.update(dep)
     this.fitness = this.body.fitness
   }
 

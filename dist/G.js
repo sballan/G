@@ -17,137 +17,116 @@ G.Canvas = function () {};
 
 G.World = function () {};
 
-G.Body = function () {};
-
-G.Brain = function () {};
-
-// This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
 G.Body = function () {
   this.category = 'body';
+  this.ID = Math.floor(Math.random() * 1000000);
+  this.timeBorn = new p5().millis();
   this.brain = undefined;
   this.dna = undefined;
+  this.ancestors = [];
+
+  this.traits = {
+    health: {
+      maxEnergy: 100,
+      energy: 100
+    },
+    torso: {
+      position: null,
+      height: 10,
+      width: 10,
+      force: 20,
+      color: 0x444444
+    },
+    eyes: {
+      position: null,
+      size: 3,
+      color: 0x444444
+    },
+    mouth: {
+      position: null,
+      size: 5,
+      color: 0x444444
+    },
+    claws: {
+      position: null,
+      size: 6,
+      color: 0x000000
+    },
+    tail: {
+      position: null,
+      size: 3,
+      speed: 10,
+      color: 0x444444
+    }
+
+  };
 
   this.states = [];
   this.state = 'searchingFood';
+  this.timeStartedState = new p5().millis();
 
   this.position = new p5.Vector(100, 100);
-  this.velocity = new p5.Vector(0, 1);
-  this.acceleration = new p5.Vector(0, 29);
+  this.velocity = new p5.Vector(0, 0);
+  this.acceleration = new p5.Vector(0, 0);
 
+  this.viewDistance = 20;
   this.maxspeed = 1;
   this.maxforce = 0.05;
 
   this.init();
 };
 
-G.Body.prototype.init = function () {
-  this.brain = new G.Brain();
+G.Brain = function () {};
 
-  this.dna = new G.Dna();
-  var dataArray = G.Setup.defaultDna();
-
-  this.dna.fillGenesFromArray(dataArray);
-
-  this.decodeDna();
-};
-
-G.Body.prototype.applyForce = function (force) {
-  this.acceleration.add(force);
-};
-
-G.Body.prototype.seek = function (target) {
-  // A vector pointing from the location to the target
-  var desired = p5.Vector.sub(target, this.position);
-  // Normalize desired and scale to maximum speed
-  desired.normalize();
-  desired.mult(this.maxspeed);
-  // Steering = Desired minus Velocity
-  var steer = p5.Vector.sub(desired, this.velocity);
-
-  // Limit to maximum steering force
-  steer.limit(this.maxforce);
-  return steer;
-};
-
-G.Body.prototype.decodeDna = function () {
-  this.decodeStates();
-  this.decodeMovement();
-};
-
-G.Body.prototype.decodeStates = function () {
-  var states = this.dna.genes.map(function (gene, index) {
-    return String.fromCharCode.apply(null, gene.data);
-  });
-  this.states = states.slice(0, 10);
-  return this.states;
-};
-
-G.Body.prototype.decodeMovement = function () {
-  var speedGene = this.dna.genes[10].data[0] / 100;
-  var forceGene = this.dna.genes[10].data[1] / 100;
-
-  this.maxspeed = speedGene;
-  this.maxforce = forceGene;
-};
-
-G.Body.prototype.render = function (p) {
-  var self = this;
-  p.pop();
-  p.stroke(255, 153, 0);
-  p.rect(self.position.x, self.position.y, 20, 20);
-  p.push();
-};
-// Can accept a p5.Vector or a Creature
-
-G.Body.prototype.update = function (p) {
-  this.brain.update();
-  this.brain[this.state]();
-
-  // Update velocity
-  this.velocity.add(this.acceleration);
-  // Limit speed
-  this.velocity.limit(this.maxspeed);
-  this.position.add(this.velocity);
-  // Reset accelertion to 0 each cycle
-  this.acceleration.mult(0);
-
-  this.render(p);
-};
+G.Food = function () {};
 
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
 
-G.Brain = function (dna) {
-  this.dna = dna;
-  this.characteristics = {};
-  this.states = [];
-  this.state = 'searchingFood';
-  this.timeStartedState = null;
+G.Brain = function (body) {
+  this.timeStartedState = new p5().millis();
+  console.dir(p5);
 
-  this.target = null;
+  // These should be hash maps that use the Body.ID property for lookup
+  this.memory = {
+    target: undefined,
+    family: undefined,
+    friends: undefined,
+    enemies: undefined
+  };
 
   this.init();
 };
 
 G.Brain.prototype.init = function () {};
 
-G.Brain.prototype.lookAround = function () {};
+G.Brain.prototype.assessSurroundings = function () {};
 
 G.Brain.prototype.assessTarget = function (target) {};
 
-G.Brain.prototype.searchingFood = function () {};
+G.Brain.prototype.searchingFood = function (dep) {
+  dep.brain = this;
+  var body = dep.body;
 
-G.Brain.prototype.update = function () {};
+  body.searching(dep);
+};
+
+G.Brain.prototype.update = function (world) {};
 
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
 
-G.Canvas = function (population) {
-  this.population = population;
-  this.drawFunctions = {};
-  this.p5 = undefined;
+G.Canvas = function (world) {
   var self = this;
 
-  var width = window.innerWidth;
-  var height = window.innerHeight;
+  this.world = world;
+
+  this.drawFunctions = {};
+  this.p5 = undefined;
+
+  var width = this.world.width || window.innerWidth;
+  var height = this.world.height || window.innerHeight;
+
+  this.world.width = width;
+  this.world.height = height;
 
   function canvas(p) {
     p.setup = function () {
@@ -182,7 +161,8 @@ G.Canvas = function (population) {
       p.stroke(255, 153, 0);
       p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
 
-      self.draw(p);
+      var dep = { p: p };
+      self.draw(dep);
     };
   }
   this.p5 = new p5(canvas, 'p5-canvas');
@@ -191,16 +171,17 @@ G.Canvas = function (population) {
 
 G.Canvas.prototype.init = function () {
   var self = this;
-  var update = self.population.update; //.bind(self.population);
-  self.addFunction('population', update, self);
+
+  var update = self.world.update; //.bind(self.world.population);
+  self.addFunction('worldUpdate', update, self.world);
 };
 
 // This function executes all functions in teh drawFunctions object
-G.Canvas.prototype.draw = function (p) {
+G.Canvas.prototype.draw = function (dep) {
   var funcs = this.drawFunctions;
 
   for (var func in funcs) {
-    if (typeof funcs[func] === 'function') funcs[func](p);
+    if (typeof funcs[func] === 'function') funcs[func](dep);
   }
 };
 
@@ -215,6 +196,14 @@ G.Canvas.prototype.addFunction = function (name, func, thisArg) {
 // This function uses the name parameter to remove the function with that name from the drawFunctions object.
 G.Canvas.prototype.removeFunction = function (name, func) {
   this.drawFunctions[name] = null;
+};
+
+G.Food = function () {
+  var maxSize = 30;
+  var minSize = 2;
+
+  this.category = 'food';
+  this.size = new p5().random(minSize, maxSize);
 };
 
 G.Setup = {
@@ -247,7 +236,42 @@ G.Setup = {
 
 // The World class is designed to be used with p5.js and with the other classes in the Demo folder.  Feel free to write your own World class.
 
-G.World = function (p) {};
+G.World = function () {
+  this.population = null;
+  this.food = null;
+
+  this.items = [];
+
+  this.container = [];
+};
+
+G.World.prototype.addPopulation = function (population) {
+  this.population = population;
+  this.attachReferences();
+};
+
+G.World.prototype.addFood = function (food) {
+  this.food = food;
+};
+
+G.World.prototype.addItem = function (item) {
+  this.items.push(item);
+};
+
+G.World.prototype.attachReferences = function () {
+  var self = this;
+
+  // Gives each Entity's Body a reference to this World.
+  self.population.entities.forEach(function (entity) {
+    entity.body.world = self;
+  });
+};
+
+G.World.prototype.update = function (dep) {
+  dep.world = this;
+
+  this.population.update(dep);
+};
 
 G.Dna = function () {
   this.genes = [];
@@ -296,6 +320,9 @@ G.Entity = function () {
   this.alive = true;
   this.fitness = undefined;
 
+  // A reference to the Entities in the population this Entity is a part of.
+  this.entities = undefined;
+
   this.body = new G.Body();
 };
 
@@ -306,8 +333,8 @@ G.Entity.prototype = {
   die: function die() {
     this.alive = false;
   },
-  update: function update(p) {
-    this.body.update(p);
+  update: function update(dep) {
+    this.body.update(dep);
     this.fitness = this.body.fitness;
   }
 
@@ -399,6 +426,7 @@ G.Population.prototype.createDnaPool = function () {
 };
 
 G.Population.prototype.createEntities = function () {
+  var self = this;
   for (var i = 0; i < this.startingPopulation; i++) {
     var e = new G.Entity();
     this.entities.push(e);
@@ -411,4 +439,235 @@ G.Population.prototype.update = function (p) {
   this.entities.forEach(function (entity) {
     entity.update(p);
   });
+};
+
+G.Body.prototype.decodeDna = function () {
+  this.decodeStates();
+  this.decodeMovement();
+  this.decodeTraits();
+};
+
+G.Body.prototype.decodeStates = function () {
+  var states = this.dna.genes.map(function (gene, index) {
+    return String.fromCharCode.apply(null, gene.data);
+  });
+  this.states = states.slice(0, 10);
+  return this.states;
+};
+
+G.Body.prototype.decodeMovement = function () {
+  var speedGene = this.dna.genes[10].data[0] / 100;
+  var forceGene = this.dna.genes[10].data[1] / 100;
+
+  this.maxspeed = speedGene;
+  this.maxforce = forceGene;
+};
+
+G.Body.prototype.decodeTraits = function () {
+  var self = this;
+
+  var traits = {
+    health: {},
+    torso: {},
+    eyes: {},
+    mouth: {},
+    claws: {},
+    tail: {}
+  };
+
+  decodeHealth(traits);
+  decodeTorso(traits);
+  decodeEyes(traits);
+  decodeMouth(traits);
+  decodeClaws(traits);
+  decodeTail(traits);
+
+  self.traits = traits;
+
+  return traits;
+
+  // Private Functions
+  function decodeHealth(traits) {
+    traits.health.maxEnergy = self.dna.genes[10].data[2];
+    return traits;
+  }
+
+  function decodeTorso(traits) {
+    traits.torso.position = self.dna.genes[11].data[0];
+    traits.torso.height = self.dna.genes[11].data[1];
+    traits.torso.width = self.dna.genes[11].data[2];
+    traits.torso.force = self.dna.genes[11].data[3];
+    traits.torso.color = self.dna.genes[11].data[4];
+  }
+
+  function decodeEyes(traits) {
+    traits.eyes.position = self.dna.genes[12].data[0];
+    traits.eyes.size = self.dna.genes[12].data[1];
+    traits.eyes.color = self.dna.genes[12].data[2];
+  }
+
+  function decodeMouth(traits) {
+    traits.mouth.position = self.dna.genes[13].data[0];
+    traits.mouth.size = self.dna.genes[13].data[1];
+    traits.mouth.color = self.dna.genes[13].data[2];
+  }
+
+  function decodeClaws(traits) {
+    traits.mouth.position = self.dna.genes[14].data[0];
+    traits.mouth.size = self.dna.genes[14].data[1];
+    traits.mouth.color = self.dna.genes[14].data[2];
+  }
+
+  function decodeTail(traits) {
+    traits.mouth.position = self.dna.genes[15].data[0];
+    traits.mouth.size = self.dna.genes[15].data[1];
+    traits.mouth.color = self.dna.genes[15].data[2];
+  }
+};
+
+// This class is used by the Creature class; you may write you own Body class to replace this one if you wish.
+G.Body.prototype.init = function () {
+  var self = this;
+
+  self.dna = new G.Dna();
+  var dataArray = G.Setup.defaultDna();
+  self.dna.fillGenesFromArray(dataArray);
+
+  self.decodeDna();
+
+  self.brain = new G.Brain(self);
+};
+
+G.Body.prototype.render = function (p) {
+  var self = this;
+  p.pop();
+  p.stroke(255, 153, 0);
+  p.rect(self.position.x, self.position.y, 20, 20);
+  p.push();
+};
+
+// Can accept a p5.Vector or a Creature
+G.Body.prototype.update = function (dep) {
+  // Attach the body to the depency dep
+  dep.body = this;
+  dep.brain = this.brain;
+
+  this.brain.update(dep);
+  this.brain[this.state](dep);
+
+  // Update velocity
+  this.velocity.add(this.acceleration);
+
+  // Limit speed
+  this.velocity.limit(this.maxspeed);
+
+  // Add velocity to current position
+  this.position.add(this.velocity);
+
+  // Reset accelertion to 0 each cycle
+  this.acceleration.mult(0);
+
+  this.render(dep.p);
+};
+
+G.Body.prototype.applyForce = function (force) {
+  this.acceleration.add(force);
+};
+
+G.Body.prototype.searching = function (dep) {
+  var world = dep.world;
+  var body = dep.body;
+  var brain = dep.brain;
+
+  if (!brain.memory.target) {
+    var x = new p5().random(0, world.width);
+    var y = new p5().random(0, world.height);
+
+    brain.memory.target = new p5.Vector(x, y);
+  }
+
+  var force = body.seek(brain.memory.target);
+
+  body.applyForce(force);
+};
+
+G.Body.prototype.seek = function (target) {
+  // A vector pointing from the location to the target
+  var desired = p5.Vector.sub(target, this.position);
+
+  // Normalize desired and scale to maximum speed
+  desired.normalize();
+  desired.mult(this.maxspeed);
+
+  // Steering = Desired minus Velocity
+  var steer = p5.Vector.sub(desired, this.velocity);
+
+  // Limit to maximum steering force
+  steer.limit(this.maxforce);
+  return steer;
+};
+
+// returns an array of
+G.Body.prototype.lookAround = function () {
+  var self = this;
+  // Loop through all entities in the population
+  var surroundings = [];
+
+  self.world.population.entities.forEach(function (entity) {
+    // Calculate the distance to each of their bodies
+    targetDistance = p5.Vector.dist(self.position, entity.body.position);
+    // If it's close enough, pass it along to seeBody().
+    if (targetDistance <= self.viewDistance) {
+      surroundings.push(self.seeBody(entity.body));
+    }
+  });
+
+  return surroundings;
+};
+
+// This function should assess the Body that it's looking at, and put it in the correct place in the Brain's memory.
+G.Body.prototype.seeBody = function (body) {
+  var self = this;
+
+  var data = {
+    body: body,
+    isFamily: self.checkFamily(body),
+    isFriend: self.checkFriend(body),
+    isEnemy: self.checkEnemy(body)
+  };
+
+  return data;
+};
+
+// Returns false if no ancestor is shared, and returns the closeness of that ancestor if it is shared (number).
+G.Body.prototype.checkFamily = function (body) {
+  var self = this;
+  var isFamily = false;
+  var relatedness;
+  if (self.ancestors.length) {
+    for (var i = 0; i < self.ancestors.length; i++) {
+      if (body.ancestors.indexOf(ancestor) > 0) {
+        self.brain.memory.family[body.ID] = body;
+        isFamily = true;
+        relatedness = i;
+        break;
+      }
+    }
+  }
+
+  if (isFamily) return relatedness;else return false;
+};
+
+G.Body.prototype.checkFriend = function (body) {
+  var self = this;
+  if (self.brain.memory.friends[body.ID]) return true;
+
+  return false;
+};
+
+G.Body.prototype.checkEnemy = function (body) {
+  var self = this;
+  if (self.brain.memory.enemies[body.ID]) return true;
+
+  return false;
 };
