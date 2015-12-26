@@ -29,7 +29,6 @@ G.Brain.prototype.assessTarget = function(target) {
 }
 
 G.Brain.prototype.searchingFood = function(dep) {
-  dep.brain = this;
   var body = dep.body;
 
   body.searching(dep)

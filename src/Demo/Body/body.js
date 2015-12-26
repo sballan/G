@@ -13,10 +13,10 @@ G.Body.prototype.init = function() {
 
 G.Body.prototype.render = function(p) {
   var self = this;
-  p.pop()
+  p.push()
   p.stroke(255, 153, 0);
   p.rect(self.position.x, self.position.y, 20, 20);
-  p.push()
+  p.pop()
 }
 
 // Can accept a p5.Vector or a Creature
