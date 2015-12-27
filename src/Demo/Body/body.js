@@ -11,6 +11,14 @@ G.Body.prototype.init = function() {
   self.brain = new G.Brain(self)
 }
 
+G.Body.prototype.setState = function(state) {
+  if(this.states.indexOf(state) > 0) {
+    this.state = state;
+  } else {
+    console.error("You tried to set an invalid state: ", state)
+  }
+}
+
 G.Body.prototype.render = function(p) {
   var self = this;
   p.push()

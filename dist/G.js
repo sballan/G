@@ -71,7 +71,7 @@ G.Body = function () {
   this.velocity = new p5.Vector(0, 0);
   this.acceleration = new p5.Vector(0, 0);
 
-  this.viewDistance = 20;
+  this.viewDistance = 100;
   this.maxspeed = 1;
   this.maxforce = 0.05;
 
@@ -107,14 +107,30 @@ G.Brain.prototype.assessTarget = function (target) {};
 
 G.Brain.prototype.searchingFood = function (dep) {
   var body = dep.body;
+  var self = this;
 
   var surroundings = body.lookAround(dep);
-
+  // console.log(surroundings)
   if (surroundings.closestFoodItem) {
-    this.memory.target = closestFoodItem.item;
-    this.seek(surroundings.closestFoodItem.foodItem);
+    self.memory.target = surroundings.closestFoodItem.position;
+    console.info("surroundings: ", surroundings);
+    console.info("self is", self.memory);
+    body.setState('pursuingFood');
   } else {
     body.searching(dep);
+  }
+};
+
+G.Brain.prototype.pursuingFood = function (dep) {
+  var body = dep.body;
+  if (this.memory.target) {
+    console.log("pursuing food");
+    var force = body.seek(this.memory.target);
+    body.applyForce(force);
+  } else {
+    this.memory.target = null;
+    body.setState('searchingFood');
+    console.info("didn't pursue food");
   }
 };
 
@@ -261,7 +277,6 @@ G.Food.foodItem = function () {
   this.position = undefined;
   this.percentEaten = 0.0;
   this.color = [138, 195, 121];
-  this.position = undefined;
 
   var maxSize = 20;
   var minSize = 1;
@@ -614,6 +629,14 @@ G.Body.prototype.init = function () {
   self.brain = new G.Brain(self);
 };
 
+G.Body.prototype.setState = function (state) {
+  if (this.states.indexOf(state) > 0) {
+    this.state = state;
+  } else {
+    console.error("You tried to set an invalid state: ", state);
+  }
+};
+
 G.Body.prototype.render = function (p) {
   var self = this;
   p.push();
@@ -653,16 +676,21 @@ G.Body.prototype.applyForce = function (force) {
 G.Body.prototype.searching = function (dep) {
   var world = dep.world;
   var body = dep.body;
-  var brain = dep.brain;
+  var memory = dep.brain.memory;
 
-  if (!brain.memory.target) {
+  if (!memory.target) {
     var x = new p5().random(0, world.width);
     var y = new p5().random(0, world.height);
 
-    brain.memory.target = new p5.Vector(x, y);
+    memory.target = new p5.Vector(x, y);
   }
 
-  var force = body.seek(brain.memory.target);
+  if (p5.Vector.dist(body.position, memory.target) < 2) {
+    memory.target = null;
+    return;
+  }
+
+  var force = body.seek(memory.target);
 
   body.applyForce(force);
 };
@@ -684,41 +712,45 @@ G.Body.prototype.seek = function (target) {
 };
 
 // returns an array of
+
+var counter = 1;
 G.Body.prototype.lookAround = function (dep) {
   var self = this;
 
   var surroundings = {
     bodies: [],
     food: [],
-    closestBody: {
-      body: undefined,
-      distance: undefined
-    },
-    closestFoodItem: {
-      foodItem: undefined,
-      distance: undefined
-    }
+    closestBody: undefined,
+    closestFoodItem: undefined
   };
 
-  var targetDistance;
+  var bodyDistance = 9999999999;
+  var foodDistance = 9999999999;
 
   var items = dep.world.getAll();
+  //console.log(items)
 
   for (var i = 0; i < items.length; i++) {
-    var item = self.checkDistance(items[i]);
-    if (!item) continue;
+    var data = self.checkDistance(items[i]);
+    if (!data) continue;
+    if (counter) console.log("items", items);
+    counter--;
+
+    var item = data.item;
+    var targetDistance = data.targetDistance;
 
     if (item.category === 'body') {
-      if (!surroundings.closestBody || targetDistance < surroundings.closestFoodItem.distance) {
-        surroundings.closestBody.body = item;
-        surroundings.closestBody.distance = targetDistance;
+      if (!surroundings.closestBody || targetDistance < bodyDistance) {
+        surroundings.closestBody = item;
+        bodyDistance = targetDistance;
       }
       surroundings.bodies.push(self.seeBody(item));
     } else if (item.category === 'food') {
-      if (!surroundings.closestBody || targetDistance < surroundings.closestFoodItem.distance) {
-        surroundings.closestBody.body = item;
-        surroundings.closestBody.distance = targetDistance;
+      if (!surroundings.closestFoodItem || targetDistance < foodDistance) {
+        surroundings.closestFoodItem = item;
+        foodDistance = targetDistance;
       }
+      console.log("see food");
       surroundings.food.push(self.seeFoodItem(item));
     }
   }
@@ -728,10 +760,13 @@ G.Body.prototype.lookAround = function (dep) {
 
 G.Body.prototype.checkDistance = function (item) {
   var self = this;
-  var targetDistance = p5.Vector.dist(self.position, item.position);
+  var data = {};
+  data.item = item;
+  data.targetDistance = p5.Vector.dist(self.position, item.position);
 
-  if (targetDistance <= self.viewDistance) {
-    return item;
+  if (data.targetDistance <= self.viewDistance) {
+    //  console.log("return data", data)
+    return data;
   } else {
     return false;
   }
@@ -754,12 +789,12 @@ G.Body.prototype.seeBody = function (body) {
 G.Body.prototype.seeFoodItem = function (foodItem) {
   var self = this;
 
+  // For use in future processing, perhaps of size and color of food.
   var data = {
     foodItem: foodItem
-
   };
 
-  return data;
+  return foodItem;
 };
 
 // Returns false if no ancestor is shared, and returns the closeness of that ancestor if it is shared (number).

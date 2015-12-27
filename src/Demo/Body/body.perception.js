@@ -1,4 +1,6 @@
 // returns an array of
+
+var counter = 1
 G.Body.prototype.lookAround = function(dep) {
   var self = this;
 
@@ -9,30 +11,35 @@ G.Body.prototype.lookAround = function(dep) {
     closestFoodItem: undefined
   };
 
-  var
+  var bodyDistance = 9999999999;
+  var foodDistance = 9999999999;
 
-  var targetDistance;
 
   var items = dep.world.getAll()
+  //console.log(items)
 
   for(let i = 0; i < items.length; i++) {
-    var item = self.checkDistance(items[i])
-    if(!item) continue
+    var data = self.checkDistance(items[i])
+    if(!data) continue
+    if(counter) console.log("items", items)
+    counter --
+
+    var item = data.item
+    var targetDistance = data.targetDistance
 
     if(item.category === 'body') {
-      if(!surroundings.closestBody ||
-      targetDistance < surroundings.closestFoodItem.distance) {
-        surroundings.closestBody.body = item;
-        surroundings.closestBody.distance = targetDistance;
+      if(!surroundings.closestBody || targetDistance < bodyDistance) {
+        surroundings.closestBody = item;
+        bodyDistance = targetDistance;
       }
       surroundings.bodies.push(self.seeBody(item))
 
     } else if (item.category === 'food'){
-      if(!surroundings.closestBody ||
-      targetDistance < surroundings.closestFoodItem.distance) {
-        surroundings.closestBody.body = item;
-        surroundings.closestBody.distance = targetDistance;
+      if(!surroundings.closestFoodItem || targetDistance < foodDistance) {
+        surroundings.closestFoodItem = item;
+        foodDistance = targetDistance;
       }
+      console.log("see food")
       surroundings.food.push(self.seeFoodItem(item))
     }
   }
@@ -42,10 +49,13 @@ G.Body.prototype.lookAround = function(dep) {
 
 G.Body.prototype.checkDistance = function(item) {
   var self = this;
-  var targetDistance = p5.Vector.dist(self.position, item.position)
+  var data = {}
+  data.item = item
+  data.targetDistance = p5.Vector.dist(self.position, item.position)
 
-  if(targetDistance <= self.viewDistance) {
-    return item
+  if(data.targetDistance <= self.viewDistance) {
+  //  console.log("return data", data)
+    return data
   } else {
     return false
   }
@@ -68,12 +78,12 @@ G.Body.prototype.seeBody = function(body) {
 G.Body.prototype.seeFoodItem = function(foodItem) {
   var self = this;
 
+  // For use in future processing, perhaps of size and color of food.
   var data = {
     foodItem: foodItem,
-
   }
 
-  return data;
+  return foodItem;
 }
 
 // Returns false if no ancestor is shared, and returns the closeness of that ancestor if it is shared (number).

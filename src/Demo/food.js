@@ -59,7 +59,6 @@ G.Food.foodItem = function() {
   this.position = undefined;
   this.percentEaten = 0.0;
   this.color = [138, 195, 121]
-  this.position = undefined;
 
 
   var maxSize = 20;

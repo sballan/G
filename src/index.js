@@ -69,7 +69,7 @@ G.Body = function() {
   this.velocity = new p5.Vector(0, 0)
   this.acceleration = new p5.Vector(0, 0)
 
-  this.viewDistance = 20;
+  this.viewDistance = 100;
   this.maxspeed = 1
   this.maxforce = 0.05
 
