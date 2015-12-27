@@ -24,6 +24,14 @@ G.World.prototype.addItem = function(item) {
   this.items.push(item)
 }
 
+G.World.prototype.getAll = function() {
+  var bodies = this.population.entities.map(function(entity){
+    return entity.body
+  })
+
+  return [].concat(bodies, this.food.foodItems)
+}
+
 G.World.prototype.update = function(dep) {
   dep.world = this;
 

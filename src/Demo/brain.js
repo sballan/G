@@ -31,7 +31,15 @@ G.Brain.prototype.assessTarget = function(target) {
 G.Brain.prototype.searchingFood = function(dep) {
   var body = dep.body;
 
-  body.searching(dep)
+  var surroundings = body.lookAround(dep)
+
+  if(surroundings.closestFoodItem) {
+    this.memory.target = closestFoodItem.item
+    this.seek(surroundings.closestFoodItem.foodItem)
+  } else {
+    body.searching(dep)
+  }
+
 }
 
 G.Brain.prototype.update = function(world) {

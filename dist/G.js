@@ -108,7 +108,14 @@ G.Brain.prototype.assessTarget = function (target) {};
 G.Brain.prototype.searchingFood = function (dep) {
   var body = dep.body;
 
-  body.searching(dep);
+  var surroundings = body.lookAround(dep);
+
+  if (surroundings.closestFoodItem) {
+    this.memory.target = closestFoodItem.item;
+    this.seek(surroundings.closestFoodItem.foodItem);
+  } else {
+    body.searching(dep);
+  }
 };
 
 G.Brain.prototype.update = function (world) {};
@@ -325,6 +332,14 @@ G.World.prototype.addFood = function (food) {
 
 G.World.prototype.addItem = function (item) {
   this.items.push(item);
+};
+
+G.World.prototype.getAll = function () {
+  var bodies = this.population.entities.map(function (entity) {
+    return entity.body;
+  });
+
+  return [].concat(bodies, this.food.foodItems);
 };
 
 G.World.prototype.update = function (dep) {
@@ -669,21 +684,57 @@ G.Body.prototype.seek = function (target) {
 };
 
 // returns an array of
-G.Body.prototype.lookAround = function () {
+G.Body.prototype.lookAround = function (dep) {
   var self = this;
-  // Loop through all entities in the population
-  var surroundings = [];
 
-  self.world.population.entities.forEach(function (entity) {
-    // Calculate the distance to each of their bodies
-    targetDistance = p5.Vector.dist(self.position, entity.body.position);
-    // If it's close enough, pass it along to seeBody().
-    if (targetDistance <= self.viewDistance) {
-      surroundings.push(self.seeBody(entity.body));
+  var surroundings = {
+    bodies: [],
+    food: [],
+    closestBody: {
+      body: undefined,
+      distance: undefined
+    },
+    closestFoodItem: {
+      foodItem: undefined,
+      distance: undefined
     }
-  });
+  };
+
+  var targetDistance;
+
+  var items = dep.world.getAll();
+
+  for (var i = 0; i < items.length; i++) {
+    var item = self.checkDistance(items[i]);
+    if (!item) continue;
+
+    if (item.category === 'body') {
+      if (!surroundings.closestBody || targetDistance < surroundings.closestFoodItem.distance) {
+        surroundings.closestBody.body = item;
+        surroundings.closestBody.distance = targetDistance;
+      }
+      surroundings.bodies.push(self.seeBody(item));
+    } else if (item.category === 'food') {
+      if (!surroundings.closestBody || targetDistance < surroundings.closestFoodItem.distance) {
+        surroundings.closestBody.body = item;
+        surroundings.closestBody.distance = targetDistance;
+      }
+      surroundings.food.push(self.seeFoodItem(item));
+    }
+  }
 
   return surroundings;
+};
+
+G.Body.prototype.checkDistance = function (item) {
+  var self = this;
+  var targetDistance = p5.Vector.dist(self.position, item.position);
+
+  if (targetDistance <= self.viewDistance) {
+    return item;
+  } else {
+    return false;
+  }
 };
 
 // This function should assess the Body that it's looking at, and put it in the correct place in the Brain's memory.
@@ -691,10 +742,21 @@ G.Body.prototype.seeBody = function (body) {
   var self = this;
 
   var data = {
-    body: body,
-    isFamily: self.checkFamily(body),
-    isFriend: self.checkFriend(body),
-    isEnemy: self.checkEnemy(body)
+    body: body
+  };
+
+  // isFamily: self.checkFamily(body),
+  // isFriend: self.checkFriend(body),
+  // isEnemy: self.checkEnemy(body)
+  return data;
+};
+
+G.Body.prototype.seeFoodItem = function (foodItem) {
+  var self = this;
+
+  var data = {
+    foodItem: foodItem
+
   };
 
   return data;
