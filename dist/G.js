@@ -136,8 +136,11 @@ G.Brain.prototype.pursuingFood = function (dep) {
 
 G.Brain.prototype.eating = function (dep) {
   var body = dep.body;
+  var chunks = body.traits.mouth.size;
+  var health = body.traits.health;
+
   if (this.memory.target) {
-    console.log("pursuing food");
+    console.log("Eating");
     var force = body.seek(this.memory.target);
     body.applyForce(force);
   } else {
@@ -295,6 +298,7 @@ G.Food.foodItem = function () {
   var minSize = 1;
 
   this.size = new p5().random(minSize, maxSize);
+  this.totalChunks = this.size * this.size;
 };
 
 G.Food.foodItem.prototype.render = function (p) {
@@ -306,8 +310,26 @@ G.Food.foodItem.prototype.render = function (p) {
   p.pop();
 };
 
+G.Food.foodItem.prototype.removeChunks = function (num) {
+  var self = this;
+  self.totalChunks -= num;
+  self.size = Math.sqrt(self.totalChunks);
+};
+
 G.Food.foodItem.prototype.update = function (dep) {
-  this.render(dep.p);
+  var self = this;
+  var food = dep.world.food;
+
+  if (self.size < 1) {
+    for (var i = 0; i < food.length; i++) {
+      if (food[i].ID === self.ID) {
+        food.splice(i, 1);
+        break;
+      }
+    }
+  }
+
+  self.render(dep.p);
 };
 
 G.Setup = {
@@ -661,7 +683,7 @@ G.Body.prototype.render = function (p) {
 
   p.push();
   // Mouth
-  p.stroke(255, 153, 100);
+  p.stroke(0, 0, 0);
   p.fill(0, 0, 0);
   p.ellipse(self.position.x, self.position.y - 5, self.traits.mouth.size, self.traits.mouth.size);
   p.pop();

@@ -77,7 +77,7 @@ G.Food.foodItem.prototype.render = function(p) {
   p.pop()
 }
 
-G.Food.foodItem.prototype.removeChunks(num) {
+G.Food.foodItem.prototype.removeChunks = function(num) {
   var self = this;
   self.totalChunks -= num;
   self.size = Math.sqrt(self.totalChunks);

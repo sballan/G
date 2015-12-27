@@ -35,7 +35,7 @@ G.Body.prototype.render = function(p) {
 
   p.push()
   // Mouth
-  p.stroke(255, 153, 100);
+  p.stroke(0, 0, 0);
   p.fill(0, 0, 0);
   p.ellipse(
     self.position.x,
