@@ -134,6 +134,19 @@ G.Brain.prototype.pursuingFood = function (dep) {
   }
 };
 
+G.Brain.prototype.eating = function (dep) {
+  var body = dep.body;
+  if (this.memory.target) {
+    console.log("pursuing food");
+    var force = body.seek(this.memory.target);
+    body.applyForce(force);
+  } else {
+    this.memory.target = null;
+    body.setState('searchingFood');
+    console.info("didn't pursue food");
+  }
+};
+
 G.Brain.prototype.update = function (world) {};
 
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
@@ -585,8 +598,8 @@ G.Body.prototype.decodeTraits = function () {
 
   function decodeTorso(traits) {
     traits.torso.position = self.dna.genes[11].data[0];
-    traits.torso.height = self.dna.genes[11].data[1];
-    traits.torso.width = self.dna.genes[11].data[2];
+    traits.torso.height = self.dna.genes[11].data[1] % 15 + 15;
+    traits.torso.width = self.dna.genes[11].data[2] % 15 + 15;
     traits.torso.force = self.dna.genes[11].data[3];
     traits.torso.color = self.dna.genes[11].data[4];
   }
@@ -599,20 +612,20 @@ G.Body.prototype.decodeTraits = function () {
 
   function decodeMouth(traits) {
     traits.mouth.position = self.dna.genes[13].data[0];
-    traits.mouth.size = self.dna.genes[13].data[1];
+    traits.mouth.size = self.dna.genes[13].data[1] % 6 + 10;
     traits.mouth.color = self.dna.genes[13].data[2];
   }
 
   function decodeClaws(traits) {
-    traits.mouth.position = self.dna.genes[14].data[0];
-    traits.mouth.size = self.dna.genes[14].data[1];
-    traits.mouth.color = self.dna.genes[14].data[2];
+    traits.claws.position = self.dna.genes[14].data[0];
+    traits.claws.size = self.dna.genes[14].data[1];
+    traits.claws.color = self.dna.genes[14].data[2];
   }
 
   function decodeTail(traits) {
-    traits.mouth.position = self.dna.genes[15].data[0];
-    traits.mouth.size = self.dna.genes[15].data[1];
-    traits.mouth.color = self.dna.genes[15].data[2];
+    traits.tail.position = self.dna.genes[15].data[0];
+    traits.tail.size = self.dna.genes[15].data[1];
+    traits.tail.color = self.dna.genes[15].data[2];
   }
 };
 
@@ -639,9 +652,19 @@ G.Body.prototype.setState = function (state) {
 
 G.Body.prototype.render = function (p) {
   var self = this;
+
   p.push();
-  p.stroke(255, 153, 0);
-  p.rect(self.position.x, self.position.y, 20, 20);
+  // Body
+  p.stroke(255, 153, 100);
+  p.fill(255, 153, 100);
+  p.ellipse(self.position.x, self.position.y, self.traits.torso.width, self.traits.torso.height);
+
+  p.push();
+  // Mouth
+  p.stroke(255, 153, 100);
+  p.fill(0, 0, 0);
+  p.ellipse(self.position.x, self.position.y - 5, self.traits.mouth.size, self.traits.mouth.size);
+  p.pop();
   p.pop();
 };
 
@@ -712,8 +735,6 @@ G.Body.prototype.seek = function (target) {
 };
 
 // returns an array of
-
-var counter = 1;
 G.Body.prototype.lookAround = function (dep) {
   var self = this;
 
@@ -733,8 +754,7 @@ G.Body.prototype.lookAround = function (dep) {
   for (var i = 0; i < items.length; i++) {
     var data = self.checkDistance(items[i]);
     if (!data) continue;
-    if (counter) console.log("items", items);
-    counter--;
+    console.log("There is an item");
 
     var item = data.item;
     var targetDistance = data.targetDistance;

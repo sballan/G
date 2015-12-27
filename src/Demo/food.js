@@ -65,6 +65,7 @@ G.Food.foodItem = function() {
   var minSize = 1;
 
   this.size = new p5().random(minSize, maxSize);
+  this.totalChunks = this.size * this.size
 }
 
 G.Food.foodItem.prototype.render = function(p) {
@@ -76,6 +77,24 @@ G.Food.foodItem.prototype.render = function(p) {
   p.pop()
 }
 
+G.Food.foodItem.prototype.removeChunks(num) {
+  var self = this;
+  self.totalChunks -= num;
+  self.size = Math.sqrt(self.totalChunks);
+}
+
 G.Food.foodItem.prototype.update = function(dep) {
-  this.render(dep.p)
+  var self = this;
+  var food = dep.world.food
+
+  if(self.size < 1) {
+    for(let i = 0; i < food.length; i++) {
+      if(food[i].ID === self.ID) {
+        food.splice(i, 1)
+        break;
+      }
+    }
+  }
+
+  self.render(dep.p)
 }

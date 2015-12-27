@@ -1,6 +1,4 @@
 // returns an array of
-
-var counter = 1
 G.Body.prototype.lookAround = function(dep) {
   var self = this;
 
@@ -21,8 +19,7 @@ G.Body.prototype.lookAround = function(dep) {
   for(let i = 0; i < items.length; i++) {
     var data = self.checkDistance(items[i])
     if(!data) continue
-    if(counter) console.log("items", items)
-    counter --
+    console.log("There is an item")
 
     var item = data.item
     var targetDistance = data.targetDistance

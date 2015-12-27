@@ -59,6 +59,23 @@ G.Brain.prototype.pursuingFood = function(dep) {
 
 }
 
+G.Brain.prototype.eating = function(dep) {
+  var body = dep.body;
+  var chunks = body.traits.mouth.size
+  var health = body.traits.health
+
+  if(this.memory.target) {
+    console.log("Eating")
+    var force = body.seek(this.memory.target)
+    body.applyForce(force)
+  } else {
+    this.memory.target = null
+    body.setState('searchingFood')
+    console.info("didn't pursue food")
+  }
+
+}
+
 G.Brain.prototype.update = function(world) {
 
 }

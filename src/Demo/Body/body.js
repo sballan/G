@@ -21,9 +21,29 @@ G.Body.prototype.setState = function(state) {
 
 G.Body.prototype.render = function(p) {
   var self = this;
+
   p.push()
-  p.stroke(255, 153, 0);
-  p.rect(self.position.x, self.position.y, 20, 20);
+  // Body
+  p.stroke(255, 153, 100);
+  p.fill(255, 153, 100);
+  p.ellipse(
+    self.position.x,
+    self.position.y,
+    self.traits.torso.width,
+    self.traits.torso.height
+  );
+
+  p.push()
+  // Mouth
+  p.stroke(255, 153, 100);
+  p.fill(0, 0, 0);
+  p.ellipse(
+    self.position.x,
+    self.position.y - 5,
+    self.traits.mouth.size,
+    self.traits.mouth.size
+  );
+  p.pop()
   p.pop()
 }
 
