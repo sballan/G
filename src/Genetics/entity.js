@@ -7,6 +7,7 @@ G.Entity = function() {
   this.entities = undefined;
 
   this.body = new G.Body();
+  this.category = 'entity';
 }
 
 G.Entity.prototype = {

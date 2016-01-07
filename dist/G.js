@@ -123,6 +123,11 @@ G.Brain.prototype.searchingFood = function (dep) {
 
 G.Brain.prototype.pursuingFood = function (dep) {
   var body = dep.body;
+  if (p5.Vector.dist(body.position, this.memory.target) < 4) {
+    body.setState('eating');
+    return;
+  }
+
   if (this.memory.target) {
     console.log("pursuing food");
     var force = body.seek(this.memory.target);
@@ -141,8 +146,7 @@ G.Brain.prototype.eating = function (dep) {
 
   if (this.memory.target) {
     console.log("Eating");
-    var force = body.seek(this.memory.target);
-    body.applyForce(force);
+    body.eat();
   } else {
     this.memory.target = null;
     body.setState('searchingFood');
@@ -450,6 +454,7 @@ G.Entity = function () {
   this.entities = undefined;
 
   this.body = new G.Body();
+  this.category = 'entity';
 };
 
 G.Entity.prototype = {
@@ -565,6 +570,17 @@ G.Population.prototype.update = function (dep) {
   this.entities.forEach(function (entity) {
     entity.update(dep);
   });
+};
+
+// Actions that the body can perform - eg, eat, attack, etc.
+G.Body.prototype.eat = function (food) {
+  if (food.category === 'foodItem') {
+
+    var biteSize = this.traits.mouth.size;
+
+    food.removeChunks(biteSize);
+    this.traits.health.energy += biteSize;
+  } else if (food.category === 'body') {}
 };
 
 G.Body.prototype.decodeDna = function () {
