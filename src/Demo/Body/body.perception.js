@@ -31,7 +31,7 @@ G.Body.prototype.lookAround = function(dep) {
       }
       surroundings.bodies.push(self.seeBody(item))
 
-    } else if (item.category === 'food'){
+    } else if (item.category === 'foodItem'){
       if(!surroundings.closestFoodItem || targetDistance < foodDistance) {
         surroundings.closestFoodItem = item;
         foodDistance = targetDistance;

@@ -112,7 +112,7 @@ G.Brain.prototype.searchingFood = function (dep) {
   var surroundings = body.lookAround(dep);
   // console.log(surroundings)
   if (surroundings.closestFoodItem) {
-    self.memory.target = surroundings.closestFoodItem.position;
+    self.memory.target = surroundings.closestFoodItem;
     console.info("surroundings: ", surroundings);
     console.info("self is", self.memory);
     body.setState('pursuingFood');
@@ -123,14 +123,20 @@ G.Brain.prototype.searchingFood = function (dep) {
 
 G.Brain.prototype.pursuingFood = function (dep) {
   var body = dep.body;
-  if (p5.Vector.dist(body.position, this.memory.target) < 4) {
+  if (p5.Vector.dist(body.position, this.memory.target.position) < 15) {
+    body.velocity.mult(0.3);
+  }
+
+  if (p5.Vector.dist(body.position, this.memory.target.position) < 2) {
+    body.velocity.set(0, 0);
+    body.acceleration.set(0, 0);
     body.setState('eating');
     return;
   }
 
   if (this.memory.target) {
     console.log("pursuing food");
-    var force = body.seek(this.memory.target);
+    var force = body.seek(this.memory.target.position);
     body.applyForce(force);
   } else {
     this.memory.target = null;
@@ -141,12 +147,10 @@ G.Brain.prototype.pursuingFood = function (dep) {
 
 G.Brain.prototype.eating = function (dep) {
   var body = dep.body;
-  var chunks = body.traits.mouth.size;
-  var health = body.traits.health;
 
   if (this.memory.target) {
-    console.log("Eating");
-    body.eat();
+
+    body.eat(this.memory.target);
   } else {
     this.memory.target = null;
     body.setState('searchingFood');
@@ -292,7 +296,7 @@ G.Food.prototype.changeIntervalMillis = function (num) {
 };
 
 G.Food.foodItem = function () {
-  this.category = 'food';
+  this.category = 'foodItem';
   this.ID = Math.floor(Math.random() * 1000000);
   this.position = undefined;
   this.percentEaten = 0.0;
@@ -303,6 +307,7 @@ G.Food.foodItem = function () {
 
   this.size = new p5().random(minSize, maxSize);
   this.totalChunks = this.size * this.size;
+  this.energy = this.size;
 };
 
 G.Food.foodItem.prototype.render = function (p) {
@@ -318,13 +323,14 @@ G.Food.foodItem.prototype.removeChunks = function (num) {
   var self = this;
   self.totalChunks -= num;
   self.size = Math.sqrt(self.totalChunks);
+  self.energy = size;
 };
 
 G.Food.foodItem.prototype.update = function (dep) {
   var self = this;
   var food = dep.world.food;
 
-  if (self.size < 1) {
+  if (self.energy < 1) {
     for (var i = 0; i < food.length; i++) {
       if (food[i].ID === self.ID) {
         food.splice(i, 1);
@@ -574,8 +580,9 @@ G.Population.prototype.update = function (dep) {
 
 // Actions that the body can perform - eg, eat, attack, etc.
 G.Body.prototype.eat = function (food) {
+  console.log('In Eat function');
   if (food.category === 'foodItem') {
-
+    console.log("eating");
     var biteSize = this.traits.mouth.size;
 
     food.removeChunks(biteSize);
@@ -712,6 +719,10 @@ G.Body.prototype.update = function (dep) {
   dep.body = this;
   dep.brain = this.brain;
 
+  if (dep.brain.memory.target && dep.brain.memory.target.energy < 1) {
+    dep.brain.memory.target = null;
+  }
+
   this.brain.update(dep);
   this.brain[this.state](dep);
 
@@ -742,16 +753,16 @@ G.Body.prototype.searching = function (dep) {
   if (!memory.target) {
     var x = new p5().random(0, world.width);
     var y = new p5().random(0, world.height);
-
-    memory.target = new p5.Vector(x, y);
+    memory.target = {};
+    memory.target.position = new p5.Vector(x, y);
   }
 
-  if (p5.Vector.dist(body.position, memory.target) < 2) {
+  if (p5.Vector.dist(body.position, memory.target.position) < 2) {
     memory.target = null;
     return;
   }
 
-  var force = body.seek(memory.target);
+  var force = body.seek(memory.target.position);
 
   body.applyForce(force);
 };
@@ -803,7 +814,7 @@ G.Body.prototype.lookAround = function (dep) {
         bodyDistance = targetDistance;
       }
       surroundings.bodies.push(self.seeBody(item));
-    } else if (item.category === 'food') {
+    } else if (item.category === 'foodItem') {
       if (!surroundings.closestFoodItem || targetDistance < foodDistance) {
         surroundings.closestFoodItem = item;
         foodDistance = targetDistance;

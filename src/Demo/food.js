@@ -54,11 +54,12 @@ G.Food.prototype.changeIntervalMillis = function(num) {
 
 
 G.Food.foodItem = function() {
-  this.category = 'food';
+  this.category = 'foodItem';
   this.ID = Math.floor(Math.random() * 1000000)
   this.position = undefined;
   this.percentEaten = 0.0;
   this.color = [138, 195, 121]
+
 
 
   var maxSize = 20;
@@ -66,6 +67,7 @@ G.Food.foodItem = function() {
 
   this.size = new p5().random(minSize, maxSize);
   this.totalChunks = this.size * this.size
+  this.energy = this.size
 }
 
 G.Food.foodItem.prototype.render = function(p) {
@@ -81,13 +83,14 @@ G.Food.foodItem.prototype.removeChunks = function(num) {
   var self = this;
   self.totalChunks -= num;
   self.size = Math.sqrt(self.totalChunks);
+  self.energy = size
 }
 
 G.Food.foodItem.prototype.update = function(dep) {
   var self = this;
   var food = dep.world.food
 
-  if(self.size < 1) {
+  if(self.energy < 1) {
     for(let i = 0; i < food.length; i++) {
       if(food[i].ID === self.ID) {
         food.splice(i, 1)

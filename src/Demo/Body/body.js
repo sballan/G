@@ -53,6 +53,10 @@ G.Body.prototype.update = function(dep) {
   dep.body = this;
   dep.brain = this.brain;
 
+  if(dep.brain.memory.target && dep.brain.memory.target.energy < 1) {
+    dep.brain.memory.target = null
+  }
+
   this.brain.update(dep)
   this.brain[this.state](dep)
 

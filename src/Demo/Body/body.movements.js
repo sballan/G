@@ -10,16 +10,16 @@ G.Body.prototype.searching = function(dep) {
   if(!memory.target) {
     var x = new p5().random(0, world.width);
     var y = new p5().random(0, world.height);
-
-    memory.target = new p5.Vector(x, y)
+    memory.target = {};
+    memory.target.position = new p5.Vector(x, y)
   }
 
-  if(p5.Vector.dist(body.position, memory.target) < 2) {
+  if(p5.Vector.dist(body.position, memory.target.position) < 2) {
     memory.target = null
     return
   }
 
-  var force = body.seek(memory.target)
+  var force = body.seek(memory.target.position)
 
   body.applyForce(force)
 }
