@@ -55,8 +55,8 @@ G.Population.prototype.createEntities = function() {
   return this.entities;
 }
 
-G.Population.prototype.update = function(p) {
+G.Population.prototype.update = function(dep) {
   this.entities.forEach(function(entity){
-    entity.update(p)
+    entity.update(dep)
   })
 }

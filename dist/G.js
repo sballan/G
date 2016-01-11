@@ -1,5 +1,7 @@
 'use strict';
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
 var G = {};
 
 G.Settings = {};
@@ -69,7 +71,7 @@ G.Body = function () {
   this.velocity = new p5.Vector(0, 0);
   this.acceleration = new p5.Vector(0, 0);
 
-  this.viewDistance = 20;
+  this.viewDistance = 100;
   this.maxspeed = 1;
   this.maxforce = 0.05;
 
@@ -104,10 +106,56 @@ G.Brain.prototype.assessSurroundings = function () {};
 G.Brain.prototype.assessTarget = function (target) {};
 
 G.Brain.prototype.searchingFood = function (dep) {
-  dep.brain = this;
+  var body = dep.body;
+  var self = this;
+
+  var surroundings = body.lookAround(dep);
+  // console.log(surroundings)
+  if (surroundings.closestFoodItem) {
+    self.memory.target = surroundings.closestFoodItem;
+    console.info("surroundings: ", surroundings);
+    console.info("self is", self.memory);
+    body.setState('pursuingFood');
+  } else {
+    body.searching(dep);
+  }
+};
+
+G.Brain.prototype.pursuingFood = function (dep) {
+  var body = dep.body;
+  if (p5.Vector.dist(body.position, this.memory.target.position) < 15) {
+    body.velocity.mult(0.3);
+  }
+
+  if (p5.Vector.dist(body.position, this.memory.target.position) < 2) {
+    body.velocity.set(0, 0);
+    body.acceleration.set(0, 0);
+    body.setState('eating');
+    return;
+  }
+
+  if (this.memory.target) {
+    console.log("pursuing food");
+    var force = body.seek(this.memory.target.position);
+    body.applyForce(force);
+  } else {
+    this.memory.target = null;
+    body.setState('searchingFood');
+    console.info("didn't pursue food");
+  }
+};
+
+G.Brain.prototype.eating = function (dep) {
   var body = dep.body;
 
-  body.searching(dep);
+  if (this.memory.target) {
+
+    body.eat(this.memory.target);
+  } else {
+    this.memory.target = null;
+    body.setState('searchingFood');
+    console.info("didn't pursue food");
+  }
 };
 
 G.Brain.prototype.update = function (world) {};
@@ -198,12 +246,100 @@ G.Canvas.prototype.removeFunction = function (name, func) {
   this.drawFunctions[name] = null;
 };
 
-G.Food = function () {
-  var maxSize = 30;
-  var minSize = 2;
+G.Food = function (num) {
+  this.foodItems = [];
+  this.batchSize = 5 || num;
 
-  this.category = 'food';
+  // In milliseconds
+  this.lastFoodTime = undefined;
+  this.foodInterval = 10000;
+};
+
+G.Food.prototype.makeFood = function (dep) {
+  this.lastFoodTime = new Date();
+
+  for (var i = 0; i < this.batchSize; i++) {
+    var foodItem = new G.Food.foodItem();
+
+    var x = new p5().random(0, dep.world.width);
+    var y = new p5().random(0, dep.world.height);
+
+    foodItem.position = new p5.Vector(x, y);
+
+    this.foodItems.push(foodItem);
+  }
+};
+
+G.Food.prototype.update = function (dep) {
+  dep.food = this;
+
+  var self = this;
+
+  var interval = new Date() - self.lastFoodTime;
+
+  if (!self.lastFoodTime || self.foodInterval < interval) {
+    console.log("Got to food interval");
+    self.makeFood(dep);
+  }
+
+  this.foodItems.forEach(function (foodItem) {
+    foodItem.update(dep);
+  });
+};
+
+G.Food.prototype.changeIntervalSeconds = function (num) {
+  this.changeIntervalMillis(num * 1000);
+};
+
+G.Food.prototype.changeIntervalMillis = function (num) {
+  this.foodInterval = num;
+};
+
+G.Food.foodItem = function () {
+  this.category = 'foodItem';
+  this.ID = Math.floor(Math.random() * 1000000);
+  this.position = undefined;
+  this.percentEaten = 0.0;
+  this.color = [138, 195, 121];
+
+  var maxSize = 20;
+  var minSize = 1;
+
   this.size = new p5().random(minSize, maxSize);
+  this.totalChunks = this.size * this.size;
+  this.energy = this.size;
+};
+
+G.Food.foodItem.prototype.render = function (p) {
+  var self = this;
+  p.push();
+  p.stroke.apply(p, _toConsumableArray(self.color));
+  p.fill.apply(p, _toConsumableArray(self.color));
+  p.rect(self.position.x, self.position.y, self.size, self.size);
+  p.pop();
+};
+
+G.Food.foodItem.prototype.removeChunks = function (num) {
+  var self = this;
+  self.totalChunks -= num;
+  self.size = Math.sqrt(self.totalChunks);
+  self.energy = size;
+};
+
+G.Food.foodItem.prototype.update = function (dep) {
+  var self = this;
+  var food = dep.world.food;
+
+  if (self.energy < 1) {
+    for (var i = 0; i < food.length; i++) {
+      if (food[i].ID === self.ID) {
+        food.splice(i, 1);
+        break;
+      }
+    }
+  }
+
+  self.render(dep.p);
 };
 
 G.Setup = {
@@ -242,12 +378,12 @@ G.World = function () {
 
   this.items = [];
 
-  this.container = [];
+  this.width = undefined;
+  this.height = undefined;
 };
 
 G.World.prototype.addPopulation = function (population) {
   this.population = population;
-  this.attachReferences();
 };
 
 G.World.prototype.addFood = function (food) {
@@ -258,19 +394,19 @@ G.World.prototype.addItem = function (item) {
   this.items.push(item);
 };
 
-G.World.prototype.attachReferences = function () {
-  var self = this;
-
-  // Gives each Entity's Body a reference to this World.
-  self.population.entities.forEach(function (entity) {
-    entity.body.world = self;
+G.World.prototype.getAll = function () {
+  var bodies = this.population.entities.map(function (entity) {
+    return entity.body;
   });
+
+  return [].concat(bodies, this.food.foodItems);
 };
 
 G.World.prototype.update = function (dep) {
   dep.world = this;
 
   this.population.update(dep);
+  this.food.update(dep);
 };
 
 G.Dna = function () {
@@ -324,6 +460,7 @@ G.Entity = function () {
   this.entities = undefined;
 
   this.body = new G.Body();
+  this.category = 'entity';
 };
 
 G.Entity.prototype = {
@@ -435,10 +572,22 @@ G.Population.prototype.createEntities = function () {
   return this.entities;
 };
 
-G.Population.prototype.update = function (p) {
+G.Population.prototype.update = function (dep) {
   this.entities.forEach(function (entity) {
-    entity.update(p);
+    entity.update(dep);
   });
+};
+
+// Actions that the body can perform - eg, eat, attack, etc.
+G.Body.prototype.eat = function (food) {
+  console.log('In Eat function');
+  if (food.category === 'foodItem') {
+    console.log("eating");
+    var biteSize = this.traits.mouth.size;
+
+    food.removeChunks(biteSize);
+    this.traits.health.energy += biteSize;
+  } else if (food.category === 'body') {}
 };
 
 G.Body.prototype.decodeDna = function () {
@@ -494,8 +643,8 @@ G.Body.prototype.decodeTraits = function () {
 
   function decodeTorso(traits) {
     traits.torso.position = self.dna.genes[11].data[0];
-    traits.torso.height = self.dna.genes[11].data[1];
-    traits.torso.width = self.dna.genes[11].data[2];
+    traits.torso.height = self.dna.genes[11].data[1] % 15 + 15;
+    traits.torso.width = self.dna.genes[11].data[2] % 15 + 15;
     traits.torso.force = self.dna.genes[11].data[3];
     traits.torso.color = self.dna.genes[11].data[4];
   }
@@ -508,20 +657,20 @@ G.Body.prototype.decodeTraits = function () {
 
   function decodeMouth(traits) {
     traits.mouth.position = self.dna.genes[13].data[0];
-    traits.mouth.size = self.dna.genes[13].data[1];
+    traits.mouth.size = self.dna.genes[13].data[1] % 6 + 10;
     traits.mouth.color = self.dna.genes[13].data[2];
   }
 
   function decodeClaws(traits) {
-    traits.mouth.position = self.dna.genes[14].data[0];
-    traits.mouth.size = self.dna.genes[14].data[1];
-    traits.mouth.color = self.dna.genes[14].data[2];
+    traits.claws.position = self.dna.genes[14].data[0];
+    traits.claws.size = self.dna.genes[14].data[1];
+    traits.claws.color = self.dna.genes[14].data[2];
   }
 
   function decodeTail(traits) {
-    traits.mouth.position = self.dna.genes[15].data[0];
-    traits.mouth.size = self.dna.genes[15].data[1];
-    traits.mouth.color = self.dna.genes[15].data[2];
+    traits.tail.position = self.dna.genes[15].data[0];
+    traits.tail.size = self.dna.genes[15].data[1];
+    traits.tail.color = self.dna.genes[15].data[2];
   }
 };
 
@@ -538,12 +687,30 @@ G.Body.prototype.init = function () {
   self.brain = new G.Brain(self);
 };
 
+G.Body.prototype.setState = function (state) {
+  if (this.states.indexOf(state) > 0) {
+    this.state = state;
+  } else {
+    console.error("You tried to set an invalid state: ", state);
+  }
+};
+
 G.Body.prototype.render = function (p) {
   var self = this;
-  p.pop();
-  p.stroke(255, 153, 0);
-  p.rect(self.position.x, self.position.y, 20, 20);
+
   p.push();
+  // Body
+  p.stroke(255, 153, 100);
+  p.fill(255, 153, 100);
+  p.ellipse(self.position.x, self.position.y, self.traits.torso.width, self.traits.torso.height);
+
+  p.push();
+  // Mouth
+  p.stroke(0, 0, 0);
+  p.fill(0, 0, 0);
+  p.ellipse(self.position.x, self.position.y - 5, self.traits.mouth.size, self.traits.mouth.size);
+  p.pop();
+  p.pop();
 };
 
 // Can accept a p5.Vector or a Creature
@@ -551,6 +718,10 @@ G.Body.prototype.update = function (dep) {
   // Attach the body to the depency dep
   dep.body = this;
   dep.brain = this.brain;
+
+  if (dep.brain.memory.target && dep.brain.memory.target.energy < 1) {
+    dep.brain.memory.target = null;
+  }
 
   this.brain.update(dep);
   this.brain[this.state](dep);
@@ -577,16 +748,21 @@ G.Body.prototype.applyForce = function (force) {
 G.Body.prototype.searching = function (dep) {
   var world = dep.world;
   var body = dep.body;
-  var brain = dep.brain;
+  var memory = dep.brain.memory;
 
-  if (!brain.memory.target) {
+  if (!memory.target) {
     var x = new p5().random(0, world.width);
     var y = new p5().random(0, world.height);
-
-    brain.memory.target = new p5.Vector(x, y);
+    memory.target = {};
+    memory.target.position = new p5.Vector(x, y);
   }
 
-  var force = body.seek(brain.memory.target);
+  if (p5.Vector.dist(body.position, memory.target.position) < 2) {
+    memory.target = null;
+    return;
+  }
+
+  var force = body.seek(memory.target.position);
 
   body.applyForce(force);
 };
@@ -608,21 +784,61 @@ G.Body.prototype.seek = function (target) {
 };
 
 // returns an array of
-G.Body.prototype.lookAround = function () {
+G.Body.prototype.lookAround = function (dep) {
   var self = this;
-  // Loop through all entities in the population
-  var surroundings = [];
 
-  self.world.population.entities.forEach(function (entity) {
-    // Calculate the distance to each of their bodies
-    targetDistance = p5.Vector.dist(self.position, entity.body.position);
-    // If it's close enough, pass it along to seeBody().
-    if (targetDistance <= self.viewDistance) {
-      surroundings.push(self.seeBody(entity.body));
+  var surroundings = {
+    bodies: [],
+    food: [],
+    closestBody: undefined,
+    closestFoodItem: undefined
+  };
+
+  var bodyDistance = 9999999999;
+  var foodDistance = 9999999999;
+
+  var items = dep.world.getAll();
+  //console.log(items)
+
+  for (var i = 0; i < items.length; i++) {
+    var data = self.checkDistance(items[i]);
+    if (!data) continue;
+    console.log("There is an item");
+
+    var item = data.item;
+    var targetDistance = data.targetDistance;
+
+    if (item.category === 'body') {
+      if (!surroundings.closestBody || targetDistance < bodyDistance) {
+        surroundings.closestBody = item;
+        bodyDistance = targetDistance;
+      }
+      surroundings.bodies.push(self.seeBody(item));
+    } else if (item.category === 'foodItem') {
+      if (!surroundings.closestFoodItem || targetDistance < foodDistance) {
+        surroundings.closestFoodItem = item;
+        foodDistance = targetDistance;
+      }
+      console.log("see food");
+      surroundings.food.push(self.seeFoodItem(item));
     }
-  });
+  }
 
   return surroundings;
+};
+
+G.Body.prototype.checkDistance = function (item) {
+  var self = this;
+  var data = {};
+  data.item = item;
+  data.targetDistance = p5.Vector.dist(self.position, item.position);
+
+  if (data.targetDistance <= self.viewDistance) {
+    //  console.log("return data", data)
+    return data;
+  } else {
+    return false;
+  }
 };
 
 // This function should assess the Body that it's looking at, and put it in the correct place in the Brain's memory.
@@ -630,13 +846,24 @@ G.Body.prototype.seeBody = function (body) {
   var self = this;
 
   var data = {
-    body: body,
-    isFamily: self.checkFamily(body),
-    isFriend: self.checkFriend(body),
-    isEnemy: self.checkEnemy(body)
+    body: body
   };
 
+  // isFamily: self.checkFamily(body),
+  // isFriend: self.checkFriend(body),
+  // isEnemy: self.checkEnemy(body)
   return data;
+};
+
+G.Body.prototype.seeFoodItem = function (foodItem) {
+  var self = this;
+
+  // For use in future processing, perhaps of size and color of food.
+  var data = {
+    foodItem: foodItem
+  };
+
+  return foodItem;
 };
 
 // Returns false if no ancestor is shared, and returns the closeness of that ancestor if it is shared (number).

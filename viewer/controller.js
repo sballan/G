@@ -1,7 +1,10 @@
 var world = new G.World()
 var population = new G.Population()
+var food = new G.Food()
+
 
 world.addPopulation(population)
+world.addFood(food)
 
 var canvas = new G.Canvas(world)
 
