@@ -6,10 +6,10 @@ var food = new G.Food()
 world.addPopulation(population)
 world.addFood(food)
 
-var canvas = new G.Canvas(world)
+var c = new G.Canvas(world)
 
 var d = 100
-canvas.addFunction('rectangle', function(dep) {
+c.addFunction('rectangle', function(dep) {
   var p = dep.p
   p.pop()
   p.stroke(255, 153, 0);

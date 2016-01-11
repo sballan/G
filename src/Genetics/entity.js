@@ -1,5 +1,5 @@
 // You should make your creature class inherit from this class in order to let it use G behaviors.
-G.Entity = class {
+G.Entity = class Entity {
   constructor() {
     this.alive = true;
     this.fitness = undefined;

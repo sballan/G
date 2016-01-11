@@ -1,4 +1,4 @@
-G.Population = class {
+G.Population = class Population {
   constructor() {
     this.startingPopulation = 5;
     this.entities = [];

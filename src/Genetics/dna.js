@@ -1,4 +1,4 @@
-G.Dna = class {
+G.Dna = class Dna {
   constructor() {
     this.genes = [];
     this.alive = true;

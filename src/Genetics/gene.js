@@ -1,4 +1,4 @@
-G.Gene = class {
+G.Gene = class Gene {
   constructor(data = []) {
     this.data = data;
     this.mutationRate = 0.1;

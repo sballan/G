@@ -166,185 +166,226 @@ G.Brain.prototype.update = function (world) {};
 
 //This class is used to create a canvas using p5.js.  Feel free to replace it!
 
-G.Canvas = function (world) {
-  var self = this;
+G.Canvas = (function () {
+  function Canvas(world) {
+    _classCallCheck(this, Canvas);
 
-  this.world = world;
+    this.world = world;
 
-  this.drawFunctions = {};
-  this.p5 = undefined;
+    this.drawFunctions = {};
+    this.p5 = undefined;
 
-  var width = this.world.width || window.innerWidth;
-  var height = this.world.height || window.innerHeight;
+    this.world.width = window.innerWidth;
+    this.world.height = window.innerHeight;
 
-  this.world.width = width;
-  this.world.height = height;
-
-  function canvas(p) {
-    p.setup = function () {
-      p.createCanvas(width, height);
-    };
-
-    p.draw = function () {
-      // Executes all the functions in the drawFunctions objet
-
-      // Set the background to black and turn off the fill color
-      p.background(0);
-      p.noFill();
-
-      // The two parameters of the point() method each specify
-      // coordinates.
-      // The first parameter is the x-coordinate and the second is the Y
-      p.stroke(255);
-      p.point(width * 0.5, height * 0.5);
-      p.point(width * 0.5, height * 0.25);
-
-      // Coordinates are used for drawing all shapes, not just points.
-      // Parameters for different functions are used for different
-      // purposes. For example, the first two parameters to line()
-      // specify the coordinates of the first endpoint and the second
-      // two parameters specify the second endpoint
-      p.stroke(0, 153, 255);
-      p.line(0, height * 0.33, width, height * 0.33);
-
-      // By default, the first two parameters to rect() are the
-      // coordinates of the upper-left corner and the second pair
-      // is the width and height
-      p.stroke(255, 153, 0);
-      p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
-
-      var dep = { p: p };
-      self.draw(dep);
-    };
-  }
-  this.p5 = new p5(canvas, 'p5-canvas');
-  this.init();
-};
-
-G.Canvas.prototype.init = function () {
-  var self = this;
-
-  var update = self.world.update; //.bind(self.world.population);
-  self.addFunction('worldUpdate', update, self.world);
-};
-
-// This function executes all functions in teh drawFunctions object
-G.Canvas.prototype.draw = function (dep) {
-  var funcs = this.drawFunctions;
-
-  for (var func in funcs) {
-    if (typeof funcs[func] === 'function') funcs[func](dep);
-  }
-};
-
-// This function takes a function and a name and creates a new key value pair of name and function in the drawFunctions object
-G.Canvas.prototype.addFunction = function (name, func, thisArg) {
-  var self = this;
-  if (thisArg) func = func.bind(thisArg);
-
-  self.drawFunctions[name] = func;
-};
-
-// This function uses the name parameter to remove the function with that name from the drawFunctions object.
-G.Canvas.prototype.removeFunction = function (name, func) {
-  this.drawFunctions[name] = null;
-};
-
-G.Food = function (num) {
-  this.foodItems = [];
-  this.batchSize = 5 || num;
-
-  // In milliseconds
-  this.lastFoodTime = undefined;
-  this.foodInterval = 10000;
-};
-
-G.Food.prototype.makeFood = function (dep) {
-  this.lastFoodTime = new Date();
-
-  for (var i = 0; i < this.batchSize; i++) {
-    var foodItem = new G.Food.foodItem();
-
-    var x = new p5().random(0, dep.world.width);
-    var y = new p5().random(0, dep.world.height);
-
-    foodItem.position = new p5.Vector(x, y);
-
-    this.foodItems.push(foodItem);
-  }
-};
-
-G.Food.prototype.update = function (dep) {
-  dep.food = this;
-
-  var self = this;
-
-  var interval = new Date() - self.lastFoodTime;
-
-  if (!self.lastFoodTime || self.foodInterval < interval) {
-    console.log("Got to food interval");
-    self.makeFood(dep);
+    this.init();
   }
 
-  this.foodItems.forEach(function (foodItem) {
-    foodItem.update(dep);
-  });
-};
+  _createClass(Canvas, [{
+    key: 'init',
+    value: function init() {
+      var self = this;
 
-G.Food.prototype.changeIntervalSeconds = function (num) {
-  this.changeIntervalMillis(num * 1000);
-};
+      var update = self.world.update; //.bind(self.world.population);
+      self.addFunction('worldUpdate', update, self.world);
 
-G.Food.prototype.changeIntervalMillis = function (num) {
-  this.foodInterval = num;
-};
+      function canvas(p) {
+        p.setup = function () {
 
-G.Food.foodItem = function () {
-  this.category = 'foodItem';
-  this.ID = Math.floor(Math.random() * 1000000);
-  this.position = undefined;
-  this.percentEaten = 0.0;
-  this.color = [138, 195, 121];
+          var width = self.world.width;
+          var height = self.world.height;
+          console.log("width and height", width, height);
+          p.createCanvas(width, height);
+        };
 
-  var maxSize = 20;
-  var minSize = 1;
+        p.draw = function () {
+          // Executes all the functions in the drawFunctions objet
 
-  this.size = new p5().random(minSize, maxSize);
-  this.totalChunks = this.size * this.size;
-  this.energy = this.size;
-};
+          // Set the background to black and turn off the fill color
+          p.background(0);
+          p.noFill();
 
-G.Food.foodItem.prototype.render = function (p) {
-  var self = this;
-  p.push();
-  p.stroke.apply(p, _toConsumableArray(self.color));
-  p.fill.apply(p, _toConsumableArray(self.color));
-  p.rect(self.position.x, self.position.y, self.size, self.size);
-  p.pop();
-};
+          // The two parameters of the point() method each specify
+          // coordinates.
+          // The first parameter is the x-coordinate and the second is the Y
+          p.stroke(255);
+          p.point(width * 0.5, height * 0.5);
+          p.point(width * 0.5, height * 0.25);
 
-G.Food.foodItem.prototype.removeChunks = function (num) {
-  var self = this;
-  self.totalChunks -= num;
-  self.size = Math.sqrt(self.totalChunks);
-  self.energy = size;
-};
+          // Coordinates are used for drawing all shapes, not just points.
+          // Parameters for different functions are used for different
+          // purposes. For example, the first two parameters to line()
+          // specify the coordinates of the first endpoint and the second
+          // two parameters specify the second endpoint
+          p.stroke(0, 153, 255);
+          p.line(0, height * 0.33, width, height * 0.33);
 
-G.Food.foodItem.prototype.update = function (dep) {
-  var self = this;
-  var food = dep.world.food;
+          // By default, the first two parameters to rect() are the
+          // coordinates of the upper-left corner and the second pair
+          // is the width and height
+          p.stroke(255, 153, 0);
+          p.rect(width * 0.25, height * 0.1, width * 0.5, height * 0.8);
 
-  if (self.energy < 1) {
-    for (var i = 0; i < food.length; i++) {
-      if (food[i].ID === self.ID) {
-        food.splice(i, 1);
-        break;
+          var dep = { p: p };
+          self.draw(dep);
+        };
+      }
+
+      self.p5 = new p5(canvas, 'p5-canvas');
+    }
+
+    // This function executes all functions in teh drawFunctions object
+  }, {
+    key: 'draw',
+    value: function draw(dep) {
+      var funcs = this.drawFunctions;
+
+      for (var func in funcs) {
+        if (typeof funcs[func] === 'function') funcs[func](dep);
       }
     }
+
+    // This function takes a function and a name and creates a new key value pair of name and function in the drawFunctions object
+  }, {
+    key: 'addFunction',
+    value: function addFunction(name, func, thisArg) {
+      var self = this;
+      if (thisArg) func = func.bind(thisArg);
+
+      self.drawFunctions[name] = func;
+    }
+
+    // This function uses the name parameter to remove the function with that name from the drawFunctions object.
+  }, {
+    key: 'removeFunction',
+    value: function removeFunction(name, func) {
+      this.drawFunctions[name] = null;
+    }
+  }]);
+
+  return Canvas;
+})();
+
+G.Food = (function () {
+  function Food() {
+    var num = arguments.length <= 0 || arguments[0] === undefined ? 5 : arguments[0];
+
+    _classCallCheck(this, Food);
+
+    this.foodItems = [];
+    this.batchSize = num;
+
+    // In milliseconds
+    this.lastFoodTime = undefined;
+    this.foodInterval = 10000;
   }
 
-  self.render(dep.p);
-};
+  _createClass(Food, [{
+    key: 'makeFood',
+    value: function makeFood(dep) {
+      this.lastFoodTime = new Date();
+
+      for (var i = 0; i < this.batchSize; i++) {
+        var foodItem = new G.Food.foodItem();
+
+        var x = new p5().random(0, dep.world.width);
+        var y = new p5().random(0, dep.world.height);
+
+        foodItem.position = new p5.Vector(x, y);
+
+        this.foodItems.push(foodItem);
+      }
+    }
+  }, {
+    key: 'update',
+    value: function update(dep) {
+      dep.food = this;
+
+      var self = this;
+
+      var interval = new Date() - self.lastFoodTime;
+
+      if (!self.lastFoodTime || self.foodInterval < interval) {
+        //      console.log("Got to food interval")
+        self.makeFood(dep);
+      }
+
+      this.foodItems.forEach(function (foodItem) {
+        foodItem.update(dep);
+      });
+    }
+  }, {
+    key: 'changeIntervalSeconds',
+    value: function changeIntervalSeconds(num) {
+      this.changeIntervalMillis(num * 1000);
+    }
+  }, {
+    key: 'changeIntervalMillis',
+    value: function changeIntervalMillis(num) {
+      this.foodInterval = num;
+    }
+  }]);
+
+  return Food;
+})();
+
+G.Food.foodItem = (function () {
+  function FoodItem() {
+    _classCallCheck(this, FoodItem);
+
+    this.category = 'foodItem';
+    this.ID = Math.floor(Math.random() * 1000000);
+    this.position = undefined;
+    this.percentEaten = 0.0;
+    this.color = [138, 195, 121];
+
+    var maxSize = 20;
+    var minSize = 1;
+
+    this.size = new p5().random(minSize, maxSize);
+    this.totalChunks = this.size * this.size;
+    this.energy = this.size;
+  }
+
+  _createClass(FoodItem, [{
+    key: 'render',
+    value: function render(p) {
+      var self = this;
+      p.push();
+      p.stroke.apply(p, _toConsumableArray(self.color));
+      p.fill.apply(p, _toConsumableArray(self.color));
+      p.rect(self.position.x, self.position.y, self.size, self.size);
+      p.pop();
+    }
+  }, {
+    key: 'removeChunks',
+    value: function removeChunks(num) {
+      var self = this;
+      self.totalChunks -= num;
+      self.size = Math.sqrt(self.totalChunks);
+      self.energy = size;
+    }
+  }, {
+    key: 'update',
+    value: function update(dep) {
+      var self = this;
+      var food = dep.world.food;
+
+      if (self.energy < 1) {
+        for (var i = 0; i < food.length; i++) {
+          if (food[i].ID === self.ID) {
+            food.splice(i, 1);
+            break;
+          }
+        }
+      }
+
+      self.render(dep.p);
+    }
+  }]);
+
+  return FoodItem;
+})();
 
 G.Setup = {
   defaultDna: function defaultDna() {
@@ -377,8 +418,8 @@ G.Setup = {
 // The World class is designed to be used with p5.js and with the other classes in the Demo folder.  Feel free to write your own World class.
 
 G.World = (function () {
-  function _class() {
-    _classCallCheck(this, _class);
+  function World() {
+    _classCallCheck(this, World);
 
     this.population = null;
     this.food = null;
@@ -389,39 +430,46 @@ G.World = (function () {
     this.height = undefined;
   }
 
-  return _class;
+  _createClass(World, [{
+    key: 'addPopulation',
+    value: function addPopulation(population) {
+      this.population = population;
+    }
+  }, {
+    key: 'addFood',
+    value: function addFood(food) {
+      this.food = food;
+    }
+  }, {
+    key: 'addItem',
+    value: function addItem(item) {
+      this.items.push(item);
+    }
+  }, {
+    key: 'getAll',
+    value: function getAll() {
+      var bodies = this.population.entities.map(function (entity) {
+        return entity.body;
+      });
+
+      return [].concat(bodies, this.food.foodItems);
+    }
+  }, {
+    key: 'update',
+    value: function update(dep) {
+      dep.world = this;
+
+      this.population.update(dep);
+      this.food.update(dep);
+    }
+  }]);
+
+  return World;
 })();
 
-G.World.prototype.addPopulation = function (population) {
-  this.population = population;
-};
-
-G.World.prototype.addFood = function (food) {
-  this.food = food;
-};
-
-G.World.prototype.addItem = function (item) {
-  this.items.push(item);
-};
-
-G.World.prototype.getAll = function () {
-  var bodies = this.population.entities.map(function (entity) {
-    return entity.body;
-  });
-
-  return [].concat(bodies, this.food.foodItems);
-};
-
-G.World.prototype.update = function (dep) {
-  dep.world = this;
-
-  this.population.update(dep);
-  this.food.update(dep);
-};
-
 G.Dna = (function () {
-  function _class2() {
-    _classCallCheck(this, _class2);
+  function Dna() {
+    _classCallCheck(this, Dna);
 
     this.genes = [];
     this.alive = true;
@@ -429,7 +477,7 @@ G.Dna = (function () {
     this.fitness = 0;
   }
 
-  _createClass(_class2, [{
+  _createClass(Dna, [{
     key: 'createGene',
     value: function createGene() {
       var newGene = new G.Gene();
@@ -475,13 +523,13 @@ G.Dna = (function () {
     }
   }]);
 
-  return _class2;
+  return Dna;
 })();
 
 // You should make your creature class inherit from this class in order to let it use G behaviors.
 G.Entity = (function () {
-  function _class3() {
-    _classCallCheck(this, _class3);
+  function Entity() {
+    _classCallCheck(this, Entity);
 
     this.alive = true;
     this.fitness = undefined;
@@ -493,7 +541,7 @@ G.Entity = (function () {
     this.category = 'entity';
   }
 
-  _createClass(_class3, [{
+  _createClass(Entity, [{
     key: 'reproduce',
     value: function reproduce(entity) {
       /*Event emitter to Population, sending this entity and another entity,
@@ -516,21 +564,21 @@ G.Entity = (function () {
     }
   }]);
 
-  return _class3;
+  return Entity;
 })();
 
 G.Gene = (function () {
-  function _class4() {
+  function Gene() {
     var data = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
 
-    _classCallCheck(this, _class4);
+    _classCallCheck(this, Gene);
 
     this.data = data;
     this.mutationRate = 0.1;
     this.mutationAmount = 3;
   }
 
-  _createClass(_class4, [{
+  _createClass(Gene, [{
     key: 'mutate',
     value: function mutate() {
       var self = this;
@@ -565,12 +613,12 @@ G.Gene = (function () {
     }
   }]);
 
-  return _class4;
+  return Gene;
 })();
 
 G.Population = (function () {
-  function _class5() {
-    _classCallCheck(this, _class5);
+  function Population() {
+    _classCallCheck(this, Population);
 
     this.startingPopulation = 5;
     this.entities = [];
@@ -579,7 +627,7 @@ G.Population = (function () {
     this.init();
   }
 
-  _createClass(_class5, [{
+  _createClass(Population, [{
     key: 'init',
     value: function init() {
       this.createEntities();
@@ -644,7 +692,7 @@ G.Population = (function () {
     }
   }]);
 
-  return _class5;
+  return Population;
 })();
 
 // Actions that the body can perform - eg, eat, attack, etc.
@@ -872,7 +920,7 @@ G.Body.prototype.lookAround = function (dep) {
   for (var i = 0; i < items.length; i++) {
     var data = self.checkDistance(items[i]);
     if (!data) continue;
-    console.log("There is an item");
+    //    console.log("There is an item")
 
     var item = data.item;
     var targetDistance = data.targetDistance;
@@ -888,7 +936,7 @@ G.Body.prototype.lookAround = function (dep) {
         surroundings.closestFoodItem = item;
         foodDistance = targetDistance;
       }
-      console.log("see food");
+      //      console.log("see food")
       surroundings.food.push(self.seeFoodItem(item));
     }
   }

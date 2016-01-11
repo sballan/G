@@ -19,7 +19,7 @@ G.Body.prototype.lookAround = function(dep) {
   for(let i = 0; i < items.length; i++) {
     var data = self.checkDistance(items[i])
     if(!data) continue
-    console.log("There is an item")
+//    console.log("There is an item")
 
     var item = data.item
     var targetDistance = data.targetDistance
@@ -36,7 +36,7 @@ G.Body.prototype.lookAround = function(dep) {
         surroundings.closestFoodItem = item;
         foodDistance = targetDistance;
       }
-      console.log("see food")
+//      console.log("see food")
       surroundings.food.push(self.seeFoodItem(item))
     }
   }
