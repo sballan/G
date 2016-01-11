@@ -2,13 +2,13 @@ var G = {}
 
 G.Settings = {}
 
-G.Entity = function() {}
+//G.Entity = function() {}
 
-G.Gene = function() {}
+//G.Gene = function() {}
 
-G.Population = function() {}
+//G.Population = function() {}
 
-G.Dna = function() {}
+//G.Dna = function(){};
 
 
 

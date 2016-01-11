@@ -1,14 +1,11 @@
-G.Gene = function(data) {
-  this.data = [];
-  this.mutationRate = 0.1;
-  this.mutationAmount = 3;
+G.Gene = class {
+  constructor(data = []) {
+    this.data = data;
+    this.mutationRate = 0.1;
+    this.mutationAmount = 3;
+  }
 
-  if(data) this.data = data
-
-}
-
-G.Gene.prototype = {
-  mutate: function(){
+  mutate(){
     var self = this;
     var polarity =  Math.random() < 0.5 ? -1 : 1;
 
@@ -29,12 +26,15 @@ G.Gene.prototype = {
         self.data.push(self.data[index])
       }
     }
-  },
-  createData: function() {
+  }
+
+
+  createData() {
     var data = Math.random() * 100;
     data = Math.floor(data);
     this.data.push(data);
 
     return this;
   }
+
 }
