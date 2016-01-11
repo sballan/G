@@ -9,24 +9,26 @@ G.Canvas = class Canvas {
 
 
 
-    this.world.width = window.innerWidth;
-    this.world.height = window.innerHeight;
+
 
     this.init()
 
   }
 
   init() {
+    this.world.width = window.innerWidth;
+    this.world.height = window.innerHeight;
+
     var self = this;
 
-    var update = self.world.update  //.bind(self.world.population);
-    self.addFunction('worldUpdate', update, self.world)
 
-    function canvas(p) {
+
+    var canvas = function(p) {
+      var width =  self.world.width;
+      var height =  self.world.height;
+
       p.setup = function() {
 
-        var width =  self.world.width;
-        var height =  self.world.height;
         console.log("width and height", width, height)
         p.createCanvas(width, height);
       }
@@ -65,6 +67,9 @@ G.Canvas = class Canvas {
     }
 
     self.p5 =  new p5(canvas, 'p5-canvas')
+
+    var update = self.world.update  //.bind(self.world.population);
+    self.addFunction('worldUpdate', update, self.world)
   }
 
   // This function executes all functions in teh drawFunctions object
