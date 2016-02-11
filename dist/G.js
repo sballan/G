@@ -1,6 +1,12 @@
 'use strict';
 
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var G = {};
 
@@ -82,9 +88,18 @@ G.Brain = function () {};
 
 G.Food = function () {};
 
+var simulation = (function () {
+
+  var game = new Game();
+
+  return {
+    game: game
+  };
+})();
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
 
 G.Brain = function (body) {
+
   this.timeStartedState = new p5().millis();
   console.dir(p5);
 
@@ -408,6 +423,22 @@ G.World.prototype.update = function (dep) {
   this.population.update(dep);
   this.food.update(dep);
 };
+
+G.Game = (function (_Phaser$Game) {
+  _inherits(_class, _Phaser$Game);
+
+  function _class(x, y) {
+    _classCallCheck(this, _class);
+
+    var preload = G.Defaults.game.preload,
+        create = G.Defaults.game.preload,
+        update = G.Defaults.game.update;
+
+    _get(Object.getPrototypeOf(_class.prototype), 'constructor', this).call(this, 800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+  }
+
+  return _class;
+})(Phaser.Game);
 
 G.Dna = function () {
   this.genes = [];

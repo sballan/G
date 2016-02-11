@@ -1,6 +1,7 @@
 // The Brain class looks at a Creature's Dna and uses it to determine what to do next.
 
 G.Brain = function(body) {
+
   this.timeStartedState = new p5().millis();
   console.dir(p5)
 
