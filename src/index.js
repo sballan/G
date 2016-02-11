@@ -1,4 +1,16 @@
-var G = {}
+var G = {
+  Defaults: {
+    Body: undefined
+  },
+  Body: undefined,
+  Sprite: {
+    Creature: undefined
+  },
+  Game: {
+    undefined
+  }
+
+}
 
 G.Settings = {}
 
@@ -9,8 +21,6 @@ G.Gene = function() {}
 G.Population = function() {}
 
 G.Dna = function() {}
-
-
 
 // These are part of the Demo and can should be modified if you wish to make your own simulation
 G.Canvas = function() {}
