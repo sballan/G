@@ -3,8 +3,6 @@
 G.World = function(){
   this.population = null;
   this.food = null;
-
-
   this.items = [];
 
   this.width = undefined;

@@ -1,4 +1,4 @@
-G.Game = class extends Phaser.Game {
+G.Game = class Game extends Phaser.Game {
   constructor(x, y) {
     let preload = G.Defaults.game.preload,
     create = G.Defaults.game.preload,
@@ -9,5 +9,5 @@ G.Game = class extends Phaser.Game {
 
 
 
-}
+};
 

@@ -1,4 +1,4 @@
-G.Sprite = class extends Phaser.Sprite {
+G.Sprite = class Sprite extends Phaser.Sprite {
 	constructor(...args) {
 		super(...args)
 

@@ -6,11 +6,10 @@ var G = {
   Sprite: {
     Creature: undefined
   },
-  Game: {
-    undefined
-  }
+  Game: undefined,
+  Dna: undefined
 
-}
+};
 
 G.Settings = {}
 

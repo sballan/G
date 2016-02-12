@@ -1,4 +1,4 @@
-G.Sprite.Creature = class extends G.Sprite {
+G.Sprite.Creature = class Creature extends G.Sprite {
   constructor(...args) {
     super(...args)
 
