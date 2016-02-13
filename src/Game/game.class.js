@@ -1,10 +1,12 @@
-G.Game = class Game extends Phaser.Game {
-  constructor(x, y) {
-    let preload = G.Defaults.game.preload,
-    create = G.Defaults.game.preload,
-    update = G.Defaults.game.update
+G.Game = function(preload, create, update, x=800, y=600) {
 
-    super(800, 600, Phaser.AUTO, '', { preload, create, update})
+    preload = preload || G.Defaults.game.preload;
+    create = create || G.Defaults.game.preload;
+    update = || G.Defaults.game.update;
+
+	
+	var game = new Game.Phaser(x, y, Phaser.Auto, '', preload, create, update);
+
   }
 
 
