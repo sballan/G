@@ -1,8 +1,8 @@
 G.Game = function(preload, create, update, x=800, y=600) {
 
-    preload = preload || G.Defaults.game.preload;
-    create = create || G.Defaults.game.preload;
-    update = || G.Defaults.game.update;
+    this.preload = preload || G.Service.Game.preload;
+    this.create = create || G.Service.Game.create;
+    this.update = update || G.Service.Game.update;
 
 	
 	var game = new Game.Phaser(x, y, Phaser.Auto, '', preload, create, update);
@@ -13,3 +13,5 @@ G.Game = function(preload, create, update, x=800, y=600) {
 
 };
 
+//Consider Using lodash here.
+G.Utils.addService(G.Game, G.Service.Game)
