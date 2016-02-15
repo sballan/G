@@ -1,15 +1,15 @@
-var simulation = (() => {
-
-	var game = new Game();
-
-
-
-
-
-
-
-	return {
-		game
-	}
-
-})();
+//var simulation = (() => {
+//
+//	var game = new Game();
+//
+//
+//
+//
+//
+//
+//
+//	return {
+//		game
+//	}
+//
+//})();

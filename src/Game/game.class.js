@@ -5,13 +5,7 @@ G.Game = function(preload, create, update, x=800, y=600) {
     this.update = update || G.Service.Game.update;
 
 	
-	var game = new Game.Phaser(x, y, Phaser.Auto, '', preload, create, update);
-
-  }
-
-
-
+	return new Phaser.Game(x, y, Phaser.Auto, '', preload, create, update);
 };
 
-//Consider Using lodash here.
-G.Utils.addService(G.Game, G.Service.Game)
+_.merge(G.Game, G.Service.Game);

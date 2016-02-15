@@ -1,11 +1,5 @@
-G.Game.World = class World extends Phaser.World {
-  constructor(width = 800, height = 600) {
-    super(width, height)
-
-
-  }
-
-
-
-
+G.Game.World = function(width = 800, height = 600) {
+  return new Phaser.Game(width, height)
 };
+
+
