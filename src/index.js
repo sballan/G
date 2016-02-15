@@ -18,6 +18,7 @@ G.Entity = function() {}
 
 G.Gene = function() {}
 
+
 G.Population = function() {}
 
 G.Dna = function() {}
