@@ -11,7 +11,8 @@ var G = {
 
 };
 
-G.Settings = {}
+G.Settings = {}   
+
 
 G.Entity = function() {}
 
